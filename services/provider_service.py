@@ -51,8 +51,7 @@ from services.session_service import SessionManager
 from tracking.manager import TrackingManager
 
 
-if TYPE_CHECKING:
-	from services.persistence_service import PersistenceService
+from services.persistence_service import PersistenceService, RequestJournal
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -120,28 +119,60 @@ class GroqService:
 			persistence: PersistenceService | None = None,
 			) -> None:
 		"""
-		persistence: optional PersistenceService (services.persistence_service).
-			When given, usage/token/account tracker history is loaded from
-			the backend on construction and can be flushed back via
-			flush_tracking(). Off by default — without it, all tracking data
-			is in-memory only and lost on process restart, exactly as before
-			this parameter existed. Pass PersistenceService.json("path.json")
-			or PersistenceService.sqlite("path.db") to opt in.
+		persistence: optional PersistenceService used for all three trackers.
+			When None and POOLGATE_DATA_DIR is set, separate per-tracker JSON
+			files are auto-created inside that directory so data survives restarts
+			without any explicit configuration.  Pass an explicit PersistenceService
+			to override the auto-detected location.
 		"""
+		import os
+
 		self._config = config or GroqConfig.from_env()
 		self._debug = debug_mode or self._config.debug_mode
-		self._logger = get_logger("service", self._config.log_level, self._debug)
+		self._logger = get_logger(
+			"service", self._config.log_level, self._debug, log_dir=self._config.log_dir,
+		)
 		self._session_manager = SessionManager(self._config.session_ttl_hours)
 		self._tracking = TrackingManager()
 		self._usage_tracker = self._tracking.usage_tracker
 		self._health_service = HealthService()
-		self._persistence = persistence
 
-		if self._persistence is not None:
-			self._persistence.load_tracker(self._tracking.usage_tracker)
-			self._persistence.load_tracker(self._tracking.token_tracker)
-			self._persistence.load_tracker(self._tracking.account_tracker)
+		# Per-tracker persistence — each tracker gets its own file so their
+		# serialised formats never collide.
+		if persistence is not None:
+			# Explicit override: share one backend for all trackers (legacy path).
+			self._usage_persistence: PersistenceService | None = persistence
+			self._token_persistence: PersistenceService | None = persistence
+			self._account_persistence: PersistenceService | None = persistence
+		elif self._config.data_dir:
+			tracking_dir = os.path.join(self._config.data_dir, "tracking")
+			os.makedirs(tracking_dir, exist_ok=True)
+			self._usage_persistence = PersistenceService.json(
+				os.path.join(tracking_dir, "usage.json")
+			)
+			self._token_persistence = PersistenceService.json(
+				os.path.join(tracking_dir, "tokens.json")
+			)
+			self._account_persistence = PersistenceService.json(
+				os.path.join(tracking_dir, "account.json")
+			)
+		else:
+			self._usage_persistence = None
+			self._token_persistence = None
+			self._account_persistence = None
+
+		if self._usage_persistence is not None:
+			self._usage_persistence.load_tracker(self._tracking.usage_tracker)
+			self._token_persistence.load_tracker(self._tracking.token_tracker)  # type: ignore[union-attr]
+			self._account_persistence.load_tracker(self._tracking.account_tracker)  # type: ignore[union-attr]
 			self._logger.info("GroqService loaded tracker history from persistence backend.")
+
+		# Request journal — one JSONL file per day with full execution details.
+		self._journal: RequestJournal | None = (
+			RequestJournal(os.path.join(self._config.data_dir, "requests"))
+			if self._config.data_dir
+			else None
+		)
 
 		keys = [
 			APIKeyState.from_key(
@@ -168,16 +199,16 @@ class GroqService:
 
 	def flush_tracking(self) -> None:
 		"""
-		Persist current usage/token/account tracker state via the configured
-		PersistenceService. No-op if persistence wasn't provided at
-		construction. Call this periodically (e.g. from a background task)
-		or before process shutdown to avoid losing in-memory tracking data.
+		Persist current tracker state to the configured JSON files.
+		No-op if no persistence backend was configured.  Call this
+		periodically or before process shutdown to avoid losing in-memory data.
 		"""
-		if self._persistence is None:
-			return
-		self._persistence.flush_tracker(self._tracking.usage_tracker)
-		self._persistence.flush_tracker(self._tracking.token_tracker)
-		self._persistence.flush_tracker(self._tracking.account_tracker)
+		if self._usage_persistence is not None:
+			self._usage_persistence.flush_tracker(self._tracking.usage_tracker)
+		if self._token_persistence is not None:
+			self._token_persistence.flush_tracker(self._tracking.token_tracker)
+		if self._account_persistence is not None:
+			self._account_persistence.flush_tracker(self._tracking.account_tracker)
 
 	def _resolve_session(self, session_id: str | None, request_id: str) -> str:
 		try:
@@ -185,6 +216,38 @@ class GroqService:
 		except SessionExpiredError as exc:
 			raise SessionExpiredError(exc.session_id, request_id=request_id) from exc
 		return session.session_id
+
+	def _journal_entry(
+			self,
+			*,
+			request_id: str,
+			session_id: str,
+			model: str,
+			api_key_id: str,
+			latency: float,
+			tokens_in: int,
+			tokens_out: int,
+			success: bool,
+			retried: bool,
+			error: str | None = None,
+			) -> None:
+		if self._journal is None:
+			return
+		import time as _time
+		self._journal.append({
+			"timestamp": _time.strftime("%Y-%m-%dT%H:%M:%SZ", _time.gmtime()),
+			"request_id": request_id,
+			"session_id": session_id,
+			"model": model,
+			"api_key_id": api_key_id,
+			"prompt_tokens": tokens_in,
+			"completion_tokens": tokens_out,
+			"total_tokens": tokens_in + tokens_out,
+			"latency_seconds": round(latency, 4),
+			"success": success,
+			"retried": retried,
+			"error": error,
+		})
 
 	def _record_success(
 			self,
@@ -210,6 +273,17 @@ class GroqService:
 				latency=latency,
 				retried=retried,
 				)
+		self._journal_entry(
+			request_id=response.request_id,
+			session_id=session_id,
+			model=model,
+			api_key_id=response.api_key_id,
+			latency=latency,
+			tokens_in=response.usage.prompt_tokens,
+			tokens_out=response.usage.completion_tokens,
+			success=True,
+			retried=retried,
+		)
 
 	def _record_failure(self, session_id: str, model: str, retried: bool) -> None:
 		self._tracking.record_failure(model, retried=retried)
@@ -226,6 +300,7 @@ class GroqService:
 			tokens_in: int = 0,
 			tokens_out: int = 0,
 			api_key_id: str = "",
+			request_id: str = "",
 			) -> None:
 		"""Record success for non-GroqResponse results (moderation, transcription, synthesis)."""
 		self._tracking.record_success(
@@ -244,6 +319,17 @@ class GroqService:
 				latency=latency,
 				retried=retried,
 				)
+		self._journal_entry(
+			request_id=request_id,
+			session_id=session_id,
+			model=model,
+			api_key_id=api_key_id,
+			latency=latency,
+			tokens_in=tokens_in,
+			tokens_out=tokens_out,
+			success=True,
+			retried=retried,
+		)
 
 	def _run_rotation_generic(
 			self,
@@ -283,6 +369,7 @@ class GroqService:
 					tokens_in=tokens_in,
 					tokens_out=tokens_out,
 					api_key_id=key.key_id,
+					request_id=request_id,
 					)
 				return result
 			except (NoAvailableAPIKeyError, APIKeyDisabledError):
@@ -350,6 +437,7 @@ class GroqService:
 					tokens_in=tokens_in,
 					tokens_out=tokens_out,
 					api_key_id=key.key_id,
+					request_id=request_id,
 					)
 				return result
 			except (NoAvailableAPIKeyError, APIKeyDisabledError):

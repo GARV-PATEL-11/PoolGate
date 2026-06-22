@@ -41,6 +41,11 @@ class GroqConfig:
 	debug_mode: bool = False
 	log_level: str = "INFO"
 
+	# Local storage — set POOLGATE_DATA_DIR to enable automatic persistence
+	# and file-based logging. Leave unset to keep everything in-memory only.
+	data_dir: str | None = None
+	log_dir: str | None = None
+
 	@classmethod
 	def from_env(cls) -> GroqConfig:
 		def env_int(name: str, default: str) -> int:
@@ -88,6 +93,10 @@ class GroqConfig:
 				)
 		# -------------------------------------------------------------------
 
+		data_dir = os.environ.get("POOLGATE_DATA_DIR", "").strip() or None
+		log_dir_raw = os.environ.get("POOLGATE_LOG_DIR", "").strip()
+		log_dir = log_dir_raw or (os.path.join(data_dir, "logs") if data_dir else None)
+
 		return cls(
 			api_keys=keys,
 			max_rpm_per_key=env_int("GROQ_MAX_RPM", "30"),
@@ -101,4 +110,6 @@ class GroqConfig:
 			session_ttl_hours=env_int("GROQ_SESSION_TTL_HOURS", "24"),
 			debug_mode=env_bool("GROQ_DEBUG", "false"),
 			log_level=os.environ.get("GROQ_LOG_LEVEL", "INFO").upper(),
+			data_dir=data_dir,
+			log_dir=log_dir,
 			)

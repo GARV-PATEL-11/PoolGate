@@ -192,7 +192,7 @@ class RequestScheduler:
 			from llm_models import get_model_config
 
 			return get_model_config(model).requests_per_minute
-		except Exception as exc:
+		except Exception:
 			# Unknown model, or a limit type that doesn't apply (e.g. an
 			# audio-only model with no requests_per_minute field) — fall
 			# back to the pool-wide default rather than failing selection.

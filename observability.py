@@ -6,6 +6,8 @@ Raw API keys are NEVER logged; they are always masked.
 from __future__ import annotations
 
 import logging
+import logging.handlers
+import os
 import re
 import sys
 import time
@@ -28,16 +30,56 @@ def mask_key(key: str) -> str:
 	return "****"
 
 
-def _make_logger(name: str, level: str = "INFO", debug_mode: bool = False) -> logging.Logger:
+_LOG_FMT = logging.Formatter(
+	"%(asctime)s [%(levelname)s] %(name)s — %(message)s",
+	datefmt="%Y-%m-%dT%H:%M:%S",
+)
+
+# 10 MB per file, keep 5 rotations
+_MAX_BYTES = 10 * 1024 * 1024
+_BACKUP_COUNT = 5
+
+
+class _RequestFilter(logging.Filter):
+	"""Only passes records whose message starts with a request lifecycle keyword."""
+
+	_PREFIXES = ("request_start", "request_end", "request_retry", "request_failure", "routing_decision")
+
+	def filter(self, record: logging.LogRecord) -> bool:
+		return any(record.getMessage().startswith(p) for p in self._PREFIXES)
+
+
+def _file_handler(path: str, level: int, *, request_only: bool = False) -> logging.Handler:
+	handler: logging.Handler = logging.handlers.RotatingFileHandler(
+		path, maxBytes=_MAX_BYTES, backupCount=_BACKUP_COUNT, encoding="utf-8",
+	)
+	handler.setLevel(level)
+	handler.setFormatter(_LOG_FMT)
+	if request_only:
+		handler.addFilter(_RequestFilter())
+	return handler
+
+
+def _make_logger(
+		name: str,
+		level: str = "INFO",
+		debug_mode: bool = False,
+		log_dir: str | None = None,
+) -> logging.Logger:
 	logger = logging.getLogger(name)
 	if not logger.handlers:
 		handler = logging.StreamHandler(sys.stdout)
-		fmt = logging.Formatter(
-			"%(asctime)s [%(levelname)s] %(name)s — %(message)s",
-			datefmt="%Y-%m-%dT%H:%M:%S",
-			)
-		handler.setFormatter(fmt)
+		handler.setFormatter(_LOG_FMT)
 		logger.addHandler(handler)
+
+	if log_dir and not any(isinstance(h, logging.handlers.RotatingFileHandler) for h in logger.handlers):
+		os.makedirs(log_dir, exist_ok=True)
+		logger.addHandler(_file_handler(os.path.join(log_dir, "general.log"), logging.DEBUG))
+		logger.addHandler(_file_handler(os.path.join(log_dir, "info.log"), logging.INFO))
+		logger.addHandler(_file_handler(os.path.join(log_dir, "error.log"), logging.ERROR))
+		logger.addHandler(_file_handler(os.path.join(log_dir, "request.log"), logging.INFO, request_only=True))
+		if debug_mode:
+			logger.addHandler(_file_handler(os.path.join(log_dir, "debug.log"), logging.DEBUG))
 
 	effective_level = logging.DEBUG if debug_mode else getattr(logging, level, logging.INFO)
 	logger.setLevel(effective_level)
@@ -70,9 +112,13 @@ class ObservabilityLogger:
 	"""Thin wrapper around stdlib logging that injects request context."""
 
 	def __init__(
-			self, name: str = "groq_pool", level: str = "INFO", debug_mode: bool = False,
+			self,
+			name: str = "groq_pool",
+			level: str = "INFO",
+			debug_mode: bool = False,
+			log_dir: str | None = None,
 			) -> None:
-		self._log = _make_logger(name, level, debug_mode)
+		self._log = _make_logger(name, level, debug_mode, log_dir=log_dir)
 		self.debug_mode = debug_mode
 
 	def _fmt(self, msg: str, ctx: RequestContext | None) -> str:
@@ -117,9 +163,12 @@ _default_logger = ObservabilityLogger()
 
 
 def get_logger(
-		name: str = "groq_pool", level: str = "INFO", debug_mode: bool = False,
+		name: str = "groq_pool",
+		level: str = "INFO",
+		debug_mode: bool = False,
+		log_dir: str | None = None,
 		) -> ObservabilityLogger:
-	return ObservabilityLogger(name, level, debug_mode)
+	return ObservabilityLogger(name, level, debug_mode, log_dir=log_dir)
 
 
 class StructuredLogger(ObservabilityLogger):
