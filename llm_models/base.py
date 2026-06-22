@@ -24,6 +24,8 @@ import os
 from dataclasses import dataclass
 from typing import ClassVar
 
+from exceptions.configuration import EnvironmentParseError, InvalidRateLimitConfigError
+
 
 @dataclass
 class ModelRateLimitConfig:
@@ -75,16 +77,20 @@ class ModelRateLimitConfig:
 		for name in ("requests_per_minute", "requests_per_day", "tokens_per_minute", "tokens_per_day", "audio_seconds_per_hour", "audio_seconds_per_day", "input_tokens_per_minute", "output_tokens_per_minute"):
 			val: int | None = getattr(self, name)
 			if val is not None and val <= 0:
-				raise ValueError(
+				raise InvalidRateLimitConfigError(
 					f"{self.__class__.__name__}.{name} must be a positive "
 					f"integer; got {val!r}.",
+					field=name,
+					value=val,
 					)
 		for name in ("context_window", "max_output_tokens"):
 			val = getattr(self, name)
 			if val is not None and val <= 0:
-				raise ValueError(
+				raise InvalidRateLimitConfigError(
 					f"{self.__class__.__name__}.{name} must be a positive "
 					f"integer; got {val!r}.",
+					field=name,
+					value=val,
 					)
 
 	# ------------------------------------------------------------------ derived properties
@@ -123,7 +129,17 @@ class ModelRateLimitConfig:
 	def _env_int(var: str, default: int | None) -> int | None:
 		"""Read an integer env var; fall back to *default* if unset."""
 		raw = os.environ.get(var)
-		return int(raw) if raw is not None else default
+		if raw is None:
+			return default
+		try:
+			return int(raw)
+		except ValueError as exc:
+			raise EnvironmentParseError(
+				f"{var} must be an integer; got {raw!r}.",
+				var_name=var,
+				raw_value=raw,
+				expected=int,
+				) from exc
 
 	# ------------------------------------------------------------------ factory
 	@classmethod

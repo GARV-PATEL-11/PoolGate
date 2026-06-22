@@ -17,6 +17,7 @@ Usage::
 """
 from __future__ import annotations
 
+from exceptions.request import UnknownModelError
 from llm_models.base import ModelRateLimitConfig
 from llm_models.allam_2_7b import Allam27BConfig
 from llm_models.canopylabs_orpheus_arabic_saudi import OrpheusArabicSaudiConfig
@@ -74,13 +75,14 @@ def get_model_config(model_id: str) -> ModelRateLimitConfig:
 		Initialised :class:`ModelRateLimitConfig` subclass instance.
 
 	Raises:
-		KeyError: if *model_id* is not registered.
+		UnknownModelError: if *model_id* is not registered.
 	"""
 	if model_id not in MODEL_REGISTRY:
-		available = ", ".join(f"{m!r}" for m in sorted(MODEL_REGISTRY))
-		raise KeyError(
-			f"Unknown model {model_id!r}.  "
-			f"Registered llm_models: {available}",
+		available = sorted(MODEL_REGISTRY)
+		raise UnknownModelError(
+			f"Unknown model {model_id!r}. Registered llm_models: {available}",
+			model_id=model_id,
+			available_models=available,
 			)
 	return MODEL_REGISTRY[model_id].from_env()
 
