@@ -10,29 +10,29 @@ from llm_models.base import ModelRateLimitConfig
 
 @dataclass
 class Llama3370BVersatileConfig(ModelRateLimitConfig):
-    """Free Plan rate limits for ``llama-3.3-70b-versatile``.
+	"""Free Plan rate limits for ``llama-3.3-70b-versatile``.
 
-    Env-var overrides (all optional; class defaults apply when unset):
-            GROQ_MODEL_LLAMA_33_70B_VERSATILE_RPM   – requests  / minute  (default: 30)
-            GROQ_MODEL_LLAMA_33_70B_VERSATILE_RPD   – requests  / day     (default: 1,000)
-            GROQ_MODEL_LLAMA_33_70B_VERSATILE_TPM   – tokens    / minute  (default: 12,000)
-            GROQ_MODEL_LLAMA_33_70B_VERSATILE_TPD   – tokens    / day     (default: 100,000)
-            GROQ_MODEL_LLAMA_33_70B_VERSATILE_ITPM  – in-tok    / minute  (default: None — only if split limits apply)
-            GROQ_MODEL_LLAMA_33_70B_VERSATILE_OTPM  – out-tok   / minute  (default: None — only if split limits apply)
-    """
+	Env-var overrides (all optional; class defaults apply when unset):
+			GROQ_MODEL_LLAMA_33_70B_VERSATILE_RPM   – requests  / minute  (default: 30)
+			GROQ_MODEL_LLAMA_33_70B_VERSATILE_RPD   – requests  / day     (default: 1,000)
+			GROQ_MODEL_LLAMA_33_70B_VERSATILE_TPM   – tokens    / minute  (default: 12,000)
+			GROQ_MODEL_LLAMA_33_70B_VERSATILE_TPD   – tokens    / day     (default: 100,000)
+			GROQ_MODEL_LLAMA_33_70B_VERSATILE_ITPM  – in-tok    / minute  (default: None — only if split limits apply)
+			GROQ_MODEL_LLAMA_33_70B_VERSATILE_OTPM  – out-tok   / minute  (default: None — only if split limits apply)
+	"""
 
-    # ------------------------------------------------------------------ identity
-    model_id: str = "llama-3.3-70b-versatile"
-    plan: str = "free"
+	# ------------------------------------------------------------------ identity
+	model_id: str = "llama-3.3-70b-versatile"
+	plan: str = "free"
 
-    # ------------------------------------------------------------------ rate limits
-    requests_per_minute: int | None = 30  # requests per minute
-    requests_per_day: int | None = 1_000  # requests per day
-    tokens_per_minute: int | None = 12_000  # tokens per minute
-    tokens_per_day: int | None = 100_000  # tokens per day
+	# ------------------------------------------------------------------ rate limits
+	requests_per_minute: int | None = 30  # requests per minute
+	requests_per_day: int | None = 1_000  # requests per day
+	tokens_per_minute: int | None = 12_000  # tokens per minute
+	tokens_per_day: int | None = 100_000  # tokens per day
 
-    # ------------------------------------------------------------------ env-var prefix
-    _ENV_PREFIX: ClassVar[str] = "GROQ_MODEL_LLAMA_33_70B_VERSATILE"
+	# ------------------------------------------------------------------ env-var prefix
+	_ENV_PREFIX: ClassVar[str] = "GROQ_MODEL_LLAMA_33_70B_VERSATILE"
 
-    context_window: int | None = 131_072
-    max_output_tokens: int | None = 32_768
+	context_window: int | None = 131_072
+	max_output_tokens: int | None = 32_768

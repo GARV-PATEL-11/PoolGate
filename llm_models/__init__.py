@@ -38,74 +38,75 @@ from llm_models.qwen3_32b import Qwen332BConfig
 from llm_models.whisper_large_v3 import WhisperLargeV3Config
 from llm_models.whisper_large_v3_turbo import WhisperLargeV3TurboConfig
 
+
 # ---------------------------------------------------------------------------
 # Registry — Groq model ID → config class
 # ---------------------------------------------------------------------------
 MODEL_REGISTRY: dict[str, type[ModelRateLimitConfig]] = {
-    "allam-2-7b": Allam27BConfig,
-    "canopylabs/orpheus-arabic-saudi": OrpheusArabicSaudiConfig,
-    "canopylabs/orpheus-v1-english": OrpheusV1EnglishConfig,
-    "groq/compound": CompoundConfig,
-    "groq/compound-mini": CompoundMiniConfig,
-    "llama-3.1-8b-instant": Llama318BInstantConfig,
-    "llama-3.3-70b-versatile": Llama3370BVersatileConfig,
-    "meta-llama/llama-4-scout-17b-16e-instruct": Llama4Scout17BConfig,
-    "meta-llama/llama-prompt-guard-2-22m": LlamaPromptGuard222MConfig,
-    "meta-llama/llama-prompt-guard-2-86m": LlamaPromptGuard286MConfig,
-    "openai/gpt-oss-120b": GptOss120BConfig,
-    "openai/gpt-oss-20b": GptOss20BConfig,
-    "openai/gpt-oss-safeguard-20b": GptOssSafeguard20BConfig,
-    "qwen/qwen3-32b": Qwen332BConfig,
-    "qwen/qwen3.6-27b": Qwen3627BConfig,
-    "whisper-large-v3": WhisperLargeV3Config,
-    "whisper-large-v3-turbo": WhisperLargeV3TurboConfig,
-}
+	"allam-2-7b": Allam27BConfig,
+	"canopylabs/orpheus-arabic-saudi": OrpheusArabicSaudiConfig,
+	"canopylabs/orpheus-v1-english": OrpheusV1EnglishConfig,
+	"groq/compound": CompoundConfig,
+	"groq/compound-mini": CompoundMiniConfig,
+	"llama-3.1-8b-instant": Llama318BInstantConfig,
+	"llama-3.3-70b-versatile": Llama3370BVersatileConfig,
+	"meta-llama/llama-4-scout-17b-16e-instruct": Llama4Scout17BConfig,
+	"meta-llama/llama-prompt-guard-2-22m": LlamaPromptGuard222MConfig,
+	"meta-llama/llama-prompt-guard-2-86m": LlamaPromptGuard286MConfig,
+	"openai/gpt-oss-120b": GptOss120BConfig,
+	"openai/gpt-oss-20b": GptOss20BConfig,
+	"openai/gpt-oss-safeguard-20b": GptOssSafeguard20BConfig,
+	"qwen/qwen3-32b": Qwen332BConfig,
+	"qwen/qwen3.6-27b": Qwen3627BConfig,
+	"whisper-large-v3": WhisperLargeV3Config,
+	"whisper-large-v3-turbo": WhisperLargeV3TurboConfig,
+	}
 
 
 def get_model_config(model_id: str) -> ModelRateLimitConfig:
-    """Return an env-initialised :class:`ModelRateLimitConfig` for *model_id*.
+	"""Return an env-initialised :class:`ModelRateLimitConfig` for *model_id*.
 
-    Calls ``SubClass.from_env()`` so any ``<ENV_PREFIX>_<FIELD>`` env vars
-    are applied on top of the hardcoded Free Plan defaults.
+	Calls ``SubClass.from_env()`` so any ``<ENV_PREFIX>_<FIELD>`` env vars
+	are applied on top of the hardcoded Free Plan defaults.
 
-    Args:
-            model_id: Groq API model identifier (e.g. ``"llama-3.3-70b-versatile"``).
+	Args:
+			model_id: Groq API model identifier (e.g. ``"llama-3.3-70b-versatile"``).
 
-    Returns:
-            Initialised :class:`ModelRateLimitConfig` subclass instance.
+	Returns:
+			Initialised :class:`ModelRateLimitConfig` subclass instance.
 
-    Raises:
-            UnknownModelError: if *model_id* is not registered.
-    """
-    if model_id not in MODEL_REGISTRY:
-        available = sorted(MODEL_REGISTRY)
-        raise UnknownModelError(
-            f"Unknown model {model_id!r}. Registered llm_models: {available}",
-            model_id=model_id,
-            available_models=available,
-        )
-    return MODEL_REGISTRY[model_id].from_env()
+	Raises:
+			UnknownModelError: if *model_id* is not registered.
+	"""
+	if model_id not in MODEL_REGISTRY:
+		available = sorted(MODEL_REGISTRY)
+		raise UnknownModelError(
+			f"Unknown model {model_id!r}. Registered llm_models: {available}",
+			model_id=model_id,
+			available_models=available,
+			)
+	return MODEL_REGISTRY[model_id].from_env()
 
 
 __all__: list = [
-    "ModelRateLimitConfig",
-    "Allam27BConfig",
-    "OrpheusArabicSaudiConfig",
-    "OrpheusV1EnglishConfig",
-    "CompoundConfig",
-    "CompoundMiniConfig",
-    "Llama318BInstantConfig",
-    "Llama3370BVersatileConfig",
-    "Llama4Scout17BConfig",
-    "LlamaPromptGuard222MConfig",
-    "LlamaPromptGuard286MConfig",
-    "GptOss120BConfig",
-    "GptOss20BConfig",
-    "GptOssSafeguard20BConfig",
-    "Qwen332BConfig",
-    "Qwen3627BConfig",
-    "WhisperLargeV3Config",
-    "WhisperLargeV3TurboConfig",
-    "MODEL_REGISTRY",
-    "get_model_config",
-]
+	"ModelRateLimitConfig",
+	"Allam27BConfig",
+	"OrpheusArabicSaudiConfig",
+	"OrpheusV1EnglishConfig",
+	"CompoundConfig",
+	"CompoundMiniConfig",
+	"Llama318BInstantConfig",
+	"Llama3370BVersatileConfig",
+	"Llama4Scout17BConfig",
+	"LlamaPromptGuard222MConfig",
+	"LlamaPromptGuard286MConfig",
+	"GptOss120BConfig",
+	"GptOss20BConfig",
+	"GptOssSafeguard20BConfig",
+	"Qwen332BConfig",
+	"Qwen3627BConfig",
+	"WhisperLargeV3Config",
+	"WhisperLargeV3TurboConfig",
+	"MODEL_REGISTRY",
+	"get_model_config",
+	]
