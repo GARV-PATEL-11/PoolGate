@@ -30,124 +30,124 @@ from tracking.models import DailyBucket, today_str
 
 @dataclass
 class GlobalUsage:
-    total_requests: int = 0
-    successful_requests: int = 0
-    failed_requests: int = 0
-    total_retries: int = 0
-    input_tokens: int = 0
-    output_tokens: int = 0
+	total_requests: int = 0
+	successful_requests: int = 0
+	failed_requests: int = 0
+	total_retries: int = 0
+	input_tokens: int = 0
+	output_tokens: int = 0
 
-    @property
-    def total_tokens(self) -> int:
-        return self.input_tokens + self.output_tokens
+	@property
+	def total_tokens(self) -> int:
+		return self.input_tokens + self.output_tokens
 
-    @property
-    def success_rate(self) -> float:
-        if self.total_requests == 0:
-            return 1.0
-        return self.successful_requests / self.total_requests
+	@property
+	def success_rate(self) -> float:
+		if self.total_requests == 0:
+			return 1.0
+		return self.successful_requests / self.total_requests
 
 
 class UsageTracker:
-    """
-    Thread-safe global counter updated after every request, plus a
-    calendar-day breakdown for historical reporting.
-    """
+	"""
+	Thread-safe global counter updated after every request, plus a
+	calendar-day breakdown for historical reporting.
+	"""
 
-    def __init__(self) -> None:
-        self._lifetime = GlobalUsage()
-        self._days: dict[str, DailyBucket] = {}
-        self._lock = threading.Lock()
+	def __init__(self) -> None:
+		self._lifetime = GlobalUsage()
+		self._days: dict[str, DailyBucket] = {}
+		self._lock = threading.Lock()
 
-    # -- recording -----------------------------------------------------
+	# -- recording -----------------------------------------------------
 
-    def record_success(self, tokens_in: int, tokens_out: int, retried: bool = False) -> None:
-        with self._lock:
-            self._lifetime.total_requests += 1
-            self._lifetime.successful_requests += 1
-            self._lifetime.input_tokens += tokens_in
-            self._lifetime.output_tokens += tokens_out
-            if retried:
-                self._lifetime.total_retries += 1
+	def record_success(self, tokens_in: int, tokens_out: int, retried: bool = False) -> None:
+		with self._lock:
+			self._lifetime.total_requests += 1
+			self._lifetime.successful_requests += 1
+			self._lifetime.input_tokens += tokens_in
+			self._lifetime.output_tokens += tokens_out
+			if retried:
+				self._lifetime.total_retries += 1
 
-            day = self._bucket_for_today()
-            day.requests += 1
-            day.successful_requests += 1
-            day.tokens_in += tokens_in
-            day.tokens_out += tokens_out
+			day = self._bucket_for_today()
+			day.requests += 1
+			day.successful_requests += 1
+			day.tokens_in += tokens_in
+			day.tokens_out += tokens_out
 
-    def on_request_start(self, *_args, **_kwargs) -> None:
-        return None
+	def on_request_start(self, *_args, **_kwargs) -> None:
+		return None
 
-    def on_request_end(
-        self, tokens_in: int = 0, tokens_out: int = 0, retried: bool = False, **_kwargs
-    ) -> None:
-        self.record_success(tokens_in, tokens_out, retried=retried)
+	def on_request_end(
+			self, tokens_in: int = 0, tokens_out: int = 0, retried: bool = False, **_kwargs,
+			) -> None:
+		self.record_success(tokens_in, tokens_out, retried=retried)
 
-    def on_request_failure(self, retried: bool = False, **_kwargs) -> None:
-        self.record_failure(retried=retried)
+	def on_request_failure(self, retried: bool = False, **_kwargs) -> None:
+		self.record_failure(retried=retried)
 
-    def get_key_usage(self, _key_id: str | None = None) -> dict:
-        return self.snapshot()
+	def get_key_usage(self, _key_id: str | None = None) -> dict:
+		return self.snapshot()
 
-    def record_failure(self, retried: bool = False) -> None:
-        with self._lock:
-            self._lifetime.total_requests += 1
-            self._lifetime.failed_requests += 1
-            if retried:
-                self._lifetime.total_retries += 1
+	def record_failure(self, retried: bool = False) -> None:
+		with self._lock:
+			self._lifetime.total_requests += 1
+			self._lifetime.failed_requests += 1
+			if retried:
+				self._lifetime.total_retries += 1
 
-            day = self._bucket_for_today()
-            day.requests += 1
-            day.failed_requests += 1
+			day = self._bucket_for_today()
+			day.requests += 1
+			day.failed_requests += 1
 
-    # -- reading ---------------------------------------------------------
+	# -- reading ---------------------------------------------------------
 
-    def snapshot(self) -> dict:
-        """Lifetime totals, since this tracker started."""
-        with self._lock:
-            u = self._lifetime
-            return {
-                "total_requests": u.total_requests,
-                "successful_requests": u.successful_requests,
-                "failed_requests": u.failed_requests,
-                "total_retries": u.total_retries,
-                "input_tokens": u.input_tokens,
-                "output_tokens": u.output_tokens,
-                "total_tokens": u.total_tokens,
-                "success_rate": round(u.success_rate, 4),
-            }
+	def snapshot(self) -> dict:
+		"""Lifetime totals, since this tracker started."""
+		with self._lock:
+			u = self._lifetime
+			return {
+				"total_requests": u.total_requests,
+				"successful_requests": u.successful_requests,
+				"failed_requests": u.failed_requests,
+				"total_retries": u.total_retries,
+				"input_tokens": u.input_tokens,
+				"output_tokens": u.output_tokens,
+				"total_tokens": u.total_tokens,
+				"success_rate": round(u.success_rate, 4),
+				}
 
-    def snapshot_for_day(self, date: str | None = None) -> dict:
-        """Usage for one calendar day, e.g. '2026-06-18'. Defaults to today."""
-        key = date or today_str()
-        with self._lock:
-            bucket = self._days.get(key, DailyBucket(date=key))
-            return bucket.to_dict()
+	def snapshot_for_day(self, date: str | None = None) -> dict:
+		"""Usage for one calendar day, e.g. '2026-06-18'. Defaults to today."""
+		key = date or today_str()
+		with self._lock:
+			bucket = self._days.get(key, DailyBucket(date=key))
+			return bucket.to_dict()
 
-    def snapshot_all_days(self) -> list[dict]:
-        """Every day tracked so far, oldest first — the full history from
-        day one up to today, ready for charting."""
-        with self._lock:
-            return [self._days[k].to_dict() for k in sorted(self._days.keys())]
+	def snapshot_all_days(self) -> list[dict]:
+		"""Every day tracked so far, oldest first — the full history from
+		day one up to today, ready for charting."""
+		with self._lock:
+			return [self._days[k].to_dict() for k in sorted(self._days.keys())]
 
-    # -- persistence hooks -------------------------------------------------
+	# -- persistence hooks -------------------------------------------------
 
-    def export_days(self) -> dict[str, dict]:
-        """date -> DailyBucket payload, for handing to persistence.py."""
-        with self._lock:
-            return {k: v.to_dict() for k, v in self._days.items()}
+	def export_days(self) -> dict[str, dict]:
+		"""date -> DailyBucket payload, for handing to persistence.py."""
+		with self._lock:
+			return {k: v.to_dict() for k, v in self._days.items()}
 
-    def load_days(self, days: dict[str, dict]) -> None:
-        """Restore daily history on startup (output of persistence.load_all())."""
-        with self._lock:
-            for key, payload in days.items():
-                self._days[key] = DailyBucket.from_dict(payload)
+	def load_days(self, days: dict[str, dict]) -> None:
+		"""Restore daily history on startup (output of persistence.load_all())."""
+		with self._lock:
+			for key, payload in days.items():
+				self._days[key] = DailyBucket.from_dict(payload)
 
-    # -- internals ------------------------------------------------------------
+	# -- internals ------------------------------------------------------------
 
-    def _bucket_for_today(self) -> DailyBucket:
-        key = today_str()
-        if key not in self._days:
-            self._days[key] = DailyBucket(date=key)
-        return self._days[key]
+	def _bucket_for_today(self) -> DailyBucket:
+		key = today_str()
+		if key not in self._days:
+			self._days[key] = DailyBucket(date=key)
+		return self._days[key]
