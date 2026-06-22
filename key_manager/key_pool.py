@@ -12,7 +12,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 
 from exceptions.keys import APIKeyError
-from observability import mask_key
+from core.logger_manager import mask_key
 from schemas.runtime import APIKeyStatus
 from utils import LatencyTracker, SlidingWindowCounter, now_ts, utc_now
 
