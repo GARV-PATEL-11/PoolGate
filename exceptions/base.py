@@ -40,16 +40,16 @@ from __future__ import annotations
 
 
 class GroqServiceError(Exception):
-    """
-    Base exception for all Groq service errors.
-    All errors are production-safe — they never expose raw API keys.
-    """
+	"""
+	Base exception for all Groq service errors.
+	All errors are production-safe — they never expose raw API keys.
+	"""
 
-    def __init__(self, message: str, request_id: str | None = None) -> None:
-        self.request_id = request_id
-        super().__init__(message)
+	def __init__(self, message: str, request_id: str | None = None) -> None:
+		self.request_id = request_id
+		super().__init__(message)
 
-    def __repr__(self) -> str:  # pragma: no cover
-        cls = type(self).__name__
-        rid = f", request_id={self.request_id!r}" if self.request_id else ""
-        return f"{cls}({str(self)!r}{rid})"
+	def __repr__(self) -> str:  # pragma: no cover
+		cls = type(self).__name__
+		rid = f", request_id={self.request_id!r}" if self.request_id else ""
+		return f"{cls}({str(self)!r}{rid})"
