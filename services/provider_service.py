@@ -36,7 +36,7 @@ from exceptions.output import SessionExpiredError, StructuredOutputError
 from exceptions.request import MissingPromptError
 from exceptions.response import RetryExhaustedError
 from key_manager.key_pool import APIKeyState
-from observability import RequestContext
+from core.logger_manager import RequestContext
 from retry import _is_auth_error, _is_rate_limit
 from schedulers.request_scheduler import RequestScheduler
 from schemas.runtime import (
@@ -51,8 +51,8 @@ from services.health_service import HealthService
 from services.session_service import SessionManager
 from tracking.manager import TrackingManager
 
-
 from services.persistence_service import PersistenceService, RequestJournal
+
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -134,7 +134,7 @@ class GroqService:
 			self._config.paths,
 			level=self._config.log_level,
 			debug=self._debug,
-		)
+			)
 		self._logger = self._log_manager.get("service")
 
 		self._session_manager = SessionManager(self._config.session_ttl_hours)
@@ -168,7 +168,7 @@ class GroqService:
 			self._log_manager.log_storage(
 				event="load", tracker="all",
 				path=paths.tracking_dir or "",
-			)
+				)
 			self._logger.info("GroqService loaded tracker history from persistence backend.")
 
 		# Request journal — one JSONL file per day with full execution details.
@@ -204,7 +204,7 @@ class GroqService:
 			rid="init", stage="initialized",
 			keys=len(keys), debug=self._debug,
 			persistence=paths.persistence_enabled,
-		)
+			)
 
 	def flush_tracking(self) -> None:
 		"""
@@ -217,17 +217,17 @@ class GroqService:
 			self._usage_persistence.flush_tracker(self._tracking.usage_tracker)
 			self._log_manager.log_storage(
 				event="flush", tracker="usage", path=paths.usage_json or "",
-			)
+				)
 		if self._token_persistence is not None:
 			self._token_persistence.flush_tracker(self._tracking.token_tracker)
 			self._log_manager.log_storage(
 				event="flush", tracker="tokens", path=paths.tokens_json or "",
-			)
+				)
 		if self._account_persistence is not None:
 			self._account_persistence.flush_tracker(self._tracking.account_tracker)
 			self._log_manager.log_storage(
 				event="flush", tracker="account", path=paths.account_json or "",
-			)
+				)
 
 	def _resolve_session(self, session_id: str | None, request_id: str) -> str:
 		try:
@@ -265,7 +265,8 @@ class GroqService:
 			"success": success,
 			"retried": retried,
 			"error": error,
-		})
+			},
+			)
 
 	def _record_success(
 			self,
@@ -301,7 +302,7 @@ class GroqService:
 			tokens_out=response.usage.completion_tokens,
 			success=True,
 			retried=retried,
-		)
+			)
 
 	def _record_failure(self, session_id: str, model: str, retried: bool) -> None:
 		self._tracking.record_failure(model, retried=retried)
@@ -347,7 +348,7 @@ class GroqService:
 			tokens_out=tokens_out,
 			success=True,
 			retried=retried,
-		)
+			)
 
 	def _run_rotation_generic(
 			self,
@@ -367,7 +368,7 @@ class GroqService:
 		self._log_manager.log_request(
 			rid=request_id, sid=session_id, model=model,
 			capability=capability, attempt=1,
-		)
+			)
 
 		for attempt in range(attempts):
 			key: APIKeyState | None = None
@@ -379,7 +380,7 @@ class GroqService:
 				self._log_manager.log_trace(
 					rid=request_id, stage="key_acquired",
 					key_id=key.key_id, attempt=attempt + 1,
-				)
+					)
 				result = call(key)
 				latency = time.perf_counter() - start
 				tokens_in, tokens_out = tokens_extractor(result) if tokens_extractor else (0, 0)
@@ -393,11 +394,11 @@ class GroqService:
 					rid=request_id, model=model,
 					tokens_in=tokens_in, tokens_out=tokens_out,
 					latency=latency, success=True,
-				)
+					)
 				self._log_manager.log_performance(
 					rid=request_id, model=model, latency=latency,
 					tokens_in=tokens_in, tokens_out=tokens_out,
-				)
+					)
 				self._record_success_raw(
 					session_id,
 					model,
@@ -428,7 +429,7 @@ class GroqService:
 				self._log_manager.log_trace(
 					rid=request_id, stage="retry",
 					attempt=attempt + 1, error=type(exc).__name__,
-				)
+					)
 				if is_auth:
 					break
 
@@ -436,10 +437,10 @@ class GroqService:
 			rid=request_id, model=model,
 			tokens_in=0, tokens_out=0, latency=0.0,
 			success=False, error=type(last_exc).__name__ if last_exc else "unknown",
-		)
+			)
 		self._log_manager.log_trace(
 			rid=request_id, stage="exhausted", attempts=attempts,
-		)
+			)
 		self._record_failure(session_id, model, retried=attempts > 1)
 		raise RetryExhaustedError(
 			f"All {attempts} attempt(s) failed. Last error: {last_exc}",
@@ -466,7 +467,7 @@ class GroqService:
 		self._log_manager.log_request(
 			rid=request_id, sid=session_id, model=model,
 			capability=capability, attempt=1,
-		)
+			)
 
 		for attempt in range(attempts):
 			key: APIKeyState | None = None
@@ -478,7 +479,7 @@ class GroqService:
 				self._log_manager.log_trace(
 					rid=request_id, stage="key_acquired",
 					key_id=key.key_id, attempt=attempt + 1,
-				)
+					)
 				result = await call(key)
 				latency = time.perf_counter() - start
 				tokens_in, tokens_out = tokens_extractor(result) if tokens_extractor else (0, 0)
@@ -492,11 +493,11 @@ class GroqService:
 					rid=request_id, model=model,
 					tokens_in=tokens_in, tokens_out=tokens_out,
 					latency=latency, success=True,
-				)
+					)
 				self._log_manager.log_performance(
 					rid=request_id, model=model, latency=latency,
 					tokens_in=tokens_in, tokens_out=tokens_out,
-				)
+					)
 				self._record_success_raw(
 					session_id,
 					model,
@@ -527,7 +528,7 @@ class GroqService:
 				self._log_manager.log_trace(
 					rid=request_id, stage="retry",
 					attempt=attempt + 1, error=type(exc).__name__,
-				)
+					)
 				if is_auth:
 					break
 
@@ -535,10 +536,10 @@ class GroqService:
 			rid=request_id, model=model,
 			tokens_in=0, tokens_out=0, latency=0.0,
 			success=False, error=type(last_exc).__name__ if last_exc else "unknown",
-		)
+			)
 		self._log_manager.log_trace(
 			rid=request_id, stage="exhausted", attempts=attempts,
-		)
+			)
 		self._record_failure(session_id, model, retried=attempts > 1)
 		raise RetryExhaustedError(
 			f"All {attempts} async attempt(s) failed. Last error: {last_exc}",
@@ -575,7 +576,7 @@ class GroqService:
 		self._log_manager.log_request(
 			rid=request_id, sid=session_id, model=model,
 			capability=capability, attempt=1,
-		)
+			)
 
 		for attempt in range(attempts):
 			key: APIKeyState | None = None
@@ -587,7 +588,7 @@ class GroqService:
 				self._log_manager.log_trace(
 					rid=request_id, stage="key_acquired",
 					key_id=key.key_id, attempt=attempt + 1,
-				)
+					)
 				response = call(key)
 				latency = time.perf_counter() - start
 				self._scheduler.release_key(
@@ -602,12 +603,12 @@ class GroqService:
 					tokens_out=response.usage.completion_tokens,
 					latency=latency, success=True,
 					finish_reason=response.finish_reason.value if response.finish_reason else "",
-				)
+					)
 				self._log_manager.log_performance(
 					rid=request_id, model=model, latency=latency,
 					tokens_in=response.usage.prompt_tokens,
 					tokens_out=response.usage.completion_tokens,
-				)
+					)
 				self._record_success(session_id, model, response, latency, retried=attempt > 0)
 				return response
 			except (NoAvailableAPIKeyError, APIKeyDisabledError):
@@ -630,7 +631,7 @@ class GroqService:
 				self._log_manager.log_trace(
 					rid=request_id, stage="retry",
 					attempt=attempt + 1, error=type(exc).__name__,
-				)
+					)
 				if is_auth:
 					break
 
@@ -638,10 +639,10 @@ class GroqService:
 			rid=request_id, model=model,
 			tokens_in=0, tokens_out=0, latency=0.0,
 			success=False, error=type(last_exc).__name__ if last_exc else "unknown",
-		)
+			)
 		self._log_manager.log_trace(
 			rid=request_id, stage="exhausted", attempts=attempts,
-		)
+			)
 		self._record_failure(session_id, model, retried=attempts > 1)
 		raise RetryExhaustedError(
 			f"All {attempts} attempt(s) failed. Last error: {last_exc}",
@@ -666,7 +667,7 @@ class GroqService:
 		self._log_manager.log_request(
 			rid=request_id, sid=session_id, model=model,
 			capability=capability, attempt=1,
-		)
+			)
 
 		for attempt in range(attempts):
 			key: APIKeyState | None = None
@@ -678,7 +679,7 @@ class GroqService:
 				self._log_manager.log_trace(
 					rid=request_id, stage="key_acquired",
 					key_id=key.key_id, attempt=attempt + 1,
-				)
+					)
 				response = await call(key)  # type: ignore[misc]
 				latency = time.perf_counter() - start
 				self._scheduler.release_key(
@@ -693,12 +694,12 @@ class GroqService:
 					tokens_out=response.usage.completion_tokens,
 					latency=latency, success=True,
 					finish_reason=response.finish_reason.value if response.finish_reason else "",
-				)
+					)
 				self._log_manager.log_performance(
 					rid=request_id, model=model, latency=latency,
 					tokens_in=response.usage.prompt_tokens,
 					tokens_out=response.usage.completion_tokens,
-				)
+					)
 				self._record_success(session_id, model, response, latency, retried=attempt > 0)
 				return response
 			except (NoAvailableAPIKeyError, APIKeyDisabledError):
@@ -720,7 +721,7 @@ class GroqService:
 				self._log_manager.log_trace(
 					rid=request_id, stage="retry",
 					attempt=attempt + 1, error=type(exc).__name__,
-				)
+					)
 				if is_auth:
 					break
 
@@ -728,10 +729,10 @@ class GroqService:
 			rid=request_id, model=model,
 			tokens_in=0, tokens_out=0, latency=0.0,
 			success=False, error=type(last_exc).__name__ if last_exc else "unknown",
-		)
+			)
 		self._log_manager.log_trace(
 			rid=request_id, stage="exhausted", attempts=attempts,
-		)
+			)
 		self._record_failure(session_id, model, retried=attempts > 1)
 		raise RetryExhaustedError(
 			f"All {attempts} async attempt(s) failed. Last error: {last_exc}",
@@ -987,7 +988,7 @@ class GroqService:
 				return schema.model_validate_json(_extract_json(response.text))
 			except (ValidationError, json.JSONDecodeError, ValueError) as exc:
 				last_exc = exc
-				messages = messages + [
+				messages += [
 					{"role": "assistant", "content": response.text},
 					{
 						"role": "user",
@@ -1262,7 +1263,7 @@ class GroqService:
 			rid=rid, model=model, tool_names=tool_names,
 			latency=response.latency,
 			finish_reason=response.finish_reason.value if response.finish_reason else "",
-		)
+			)
 		return response
 
 	async def async_invoke_tools(
@@ -1302,7 +1303,7 @@ class GroqService:
 			rid=rid, model=model, tool_names=tool_names,
 			latency=response.latency,
 			finish_reason=response.finish_reason.value if response.finish_reason else "",
-		)
+			)
 		return response
 
 	# ------------------------------------------------------------------
