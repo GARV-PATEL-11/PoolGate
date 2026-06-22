@@ -1,15 +1,26 @@
-"""Batch processing — run multiple prompts concurrently and collect results."""
+"""Batch processing — run multiple prompts concurrently and collect results.
+
+Environment (.env or shell):
+    TOTAL_GROQ_KEYS=2          # more keys = higher throughput
+    GROQ_API_KEY_01=gsk_...
+    GROQ_API_KEY_02=gsk_...
+    POOLGATE_DATA_DIR=./poolgate_data
+"""
 
 from __future__ import annotations
 
 import asyncio
+import os
+
+from dotenv import load_dotenv
 
 from exceptions.base import GroqServiceError
 from services.provider_service import GroqService
-from dotenv import load_dotenv
 
 
 load_dotenv()
+os.environ.setdefault("POOLGATE_DATA_DIR", "./poolgate_data")
+
 PROMPTS = [
 	"What is 2 + 2?",
 	"Name the planets in our solar system.",
@@ -30,7 +41,8 @@ async def main() -> None:
 		)
 
 	print(
-		f"Batch complete: {summary.succeeded}/{summary.total} succeeded  ({summary.failed} failed)",
+		f"Batch complete: {summary.succeeded}/{summary.total} succeeded  "
+		f"({summary.failed} failed)",
 		)
 	print(f"Total latency: {summary.total_latency:.3f}s")
 	print()
@@ -42,6 +54,10 @@ async def main() -> None:
 			print(f"  [{status}] #{result.index}: {preview}...")
 		else:
 			print(f"  [{status}] #{result.index}: {result.error}")
+
+	service.flush_tracking()
+	if service._config.data_dir:
+		print(f"\nAll {summary.total} requests journaled to {service._config.data_dir}/requests/")
 
 
 if __name__ == "__main__":

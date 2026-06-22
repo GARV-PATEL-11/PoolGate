@@ -9,25 +9,26 @@ import os
 from dataclasses import dataclass, field
 
 from exceptions.configuration import ConfigurationError, EnvironmentParseError
+from core.path_config import PathConfig
 
 
 @dataclass
 class GroqConfig:
 	"""Central configuration object. Populated once at import time."""
 
-	# Raw API keys — loaded from GROQ_API_KEY_01 … GROQ_API_KEY_N
+	# Raw API keys
 	api_keys: list[str] = field(default_factory=list)
 
 	# Key health thresholds
-	max_rpm_per_key: int = 30  # requests per minute before penalty
-	max_active_requests: int = 10  # concurrent requests per key
-	cooldown_seconds: float = 60.0  # how long to cool down after 429
-	failure_threshold: int = 5  # consecutive failures before FAILED status
-	latency_penalty_threshold: float = 3.0  # seconds
+	max_rpm_per_key: int = 30
+	max_active_requests: int = 10
+	cooldown_seconds: float = 60.0
+	failure_threshold: int = 5
+	latency_penalty_threshold: float = 3.0
 
 	# Scheduler / pool
-	default_concurrency: int = 20  # batch semaphore default
-	health_check_interval: float = 30.0  # seconds between background checks
+	default_concurrency: int = 20
+	health_check_interval: float = 30.0
 
 	# Retry defaults
 	max_retries: int = 3
@@ -41,19 +42,12 @@ class GroqConfig:
 	debug_mode: bool = False
 	log_level: str = "INFO"
 
-	# Local storage — set POOLGATE_DATA_DIR to enable automatic persistence
-	# and file-based logging. Leave unset to keep everything in-memory only.
-	data_dir: str | None = None
-	log_dir: str | None = None
-
-	# Resolved path configuration — computed from data_dir / log_dir.
-	# Access all filesystem paths through config.paths rather than
-	# constructing them inline in other modules.
-	paths: "PathConfig" = field(init=False)  # type: ignore[name-defined]
+	# Path system (single source of truth)
+	paths: PathConfig = field(init=False)
 
 	def __post_init__(self) -> None:
-		from core.path_config import PathConfig
-		self.paths = PathConfig(data_dir=self.data_dir, log_dir_override=self.log_dir)
+		# Paths must already be fully resolved (no env logic here)
+		self.paths = PathConfig()
 
 	@classmethod
 	def from_env(cls) -> GroqConfig:
@@ -85,9 +79,10 @@ class GroqConfig:
 			raw_value = os.environ.get(name, default)
 			return raw_value.strip().lower() in ("1", "true", "yes")
 
-		# --- Key loading ---------------------------------------------------
+		# --- API key loading ---
 		total_keys = env_int("TOTAL_GROQ_KEYS", "1")
 		keys: list[str] = []
+
 		for i in range(1, total_keys + 1):
 			var_name = f"GROQ_API_KEY_{i:02d}"
 			value = os.environ.get(var_name, "").strip()
@@ -97,15 +92,10 @@ class GroqConfig:
 		if not keys:
 			raise ConfigurationError(
 				f"No valid Groq API keys found. "
-				f"Set TOTAL_GROQ_KEYS and populate GROQ_API_KEY_01 … "
-				f"GROQ_API_KEY_{total_keys:02d} in your environment.",
+				f"Set TOTAL_GROQ_KEYS and GROQ_API_KEY_01 … GROQ_API_KEY_{total_keys:02d}.",
 				)
-		# -------------------------------------------------------------------
 
-		data_dir = os.environ.get("POOLGATE_DATA_DIR", "").strip() or None
-		log_dir_raw = os.environ.get("POOLGATE_LOG_DIR", "").strip()
-		log_dir = log_dir_raw or (os.path.join(data_dir, "logs") if data_dir else None)
-
+		# --- build config (NO PATH LOGIC HERE ANYMORE) ---
 		return cls(
 			api_keys=keys,
 			max_rpm_per_key=env_int("GROQ_MAX_RPM", "30"),
@@ -119,6 +109,4 @@ class GroqConfig:
 			session_ttl_hours=env_int("GROQ_SESSION_TTL_HOURS", "24"),
 			debug_mode=env_bool("GROQ_DEBUG", "false"),
 			log_level=os.environ.get("GROQ_LOG_LEVEL", "INFO").upper(),
-			data_dir=data_dir,
-			log_dir=log_dir,
 			)

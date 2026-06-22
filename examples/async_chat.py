@@ -1,13 +1,20 @@
-"""Async chat — async_invoke and async_stream with asyncio."""
+"""Async chat — async_invoke and async_stream with asyncio.
+
+Environment (.env or shell):
+    TOTAL_GROQ_KEYS=1
+    GROQ_API_KEY_01=gsk_...
+    POOLGATE_DATA_DIR=./poolgate_data
+"""
 
 from __future__ import annotations
 
 import asyncio
 import sys
 
+from dotenv import load_dotenv
+
 from exceptions.base import GroqServiceError
 from services.provider_service import GroqService
-from dotenv import load_dotenv
 
 
 load_dotenv()
@@ -32,6 +39,10 @@ async def main() -> None:
 			):
 		print(chunk, end="", flush=True)
 	print()
+
+	service.flush_tracking()
+	if service._config.data_dir:
+		print(f"\nData saved to {service._config.data_dir}/")
 
 
 if __name__ == "__main__":
