@@ -1,10 +1,29 @@
 [project]
 name = "poolgate"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.1.1"
+description = "Rate-aware API key pooling and orchestration for the Groq API."
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.10"
 dependencies = [
     "groq>=1.4.0",
-    "pydantic>=2.13.4",
+    "pydantic>=2.13.0",
+    "tenacity>=8.5.0",
 ]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-mock>=3.14.0",
+    "httpx>=0.28.0",
+    "ruff>=0.8.0",
+    "pytest-cov>=6.0.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["."]
+omit = ["tests/*", "*/__pycache__/*"]
