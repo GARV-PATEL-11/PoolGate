@@ -138,11 +138,11 @@ class UsageTracker:
 		with self._lock:
 			return {k: v.to_dict() for k, v in self._days.items()}
 
-	def load_days(self, days: dict[str, dict]) -> None:
-		"""Restore daily history on startup (output of persistence.load_all())."""
-		with self._lock:
-			for key, payload in days.items():
-				self._days[key] = DailyBucket.from_dict(payload)
+	def load_days(self, days: dict) -> None:
+		for key, payload in days.items():
+			if "date" not in payload:
+				payload = {**payload, "date": key}
+			self._days[key] = DailyBucket.from_dict(payload)
 
 	# -- internals ------------------------------------------------------------
 

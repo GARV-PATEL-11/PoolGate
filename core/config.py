@@ -15,7 +15,7 @@ from exceptions.configuration import ConfigurationError, EnvironmentParseError
 class GroqConfig:
 	"""Central configuration object. Populated once at import time."""
 
-	# Raw API keys — loaded from GROQ_API_KEYS (comma-separated)
+	# Raw API keys — loaded from GROQ_API_KEY_01 … GROQ_API_KEY_N
 	api_keys: list[str] = field(default_factory=list)
 
 	# Key health thresholds
@@ -67,16 +67,26 @@ class GroqConfig:
 					expected=float,
 					) from exc
 
-		raw = os.environ.get("GROQ_API_KEYS", "").strip()
-		if not raw:
-			raise ConfigurationError(
-				"GROQ_API_KEYS environment variable is not set. "
-				"Set it to a comma-separated list of Groq API keys.",
-				)
+		def env_bool(name: str, default: str) -> bool:
+			raw_value = os.environ.get(name, default)
+			return raw_value.strip().lower() in ("1", "true", "yes")
 
-		keys = [k.strip() for k in raw.split(",") if k.strip()]
+		# --- Key loading ---------------------------------------------------
+		total_keys = env_int("TOTAL_GROQ_KEYS", "1")
+		keys: list[str] = []
+		for i in range(1, total_keys + 1):
+			var_name = f"GROQ_API_KEY_{i:02d}"
+			value = os.environ.get(var_name, "").strip()
+			if value:
+				keys.append(value)
+
 		if not keys:
-			raise ConfigurationError("GROQ_API_KEYS contained no valid keys after parsing.")
+			raise ConfigurationError(
+				f"No valid Groq API keys found. "
+				f"Set TOTAL_GROQ_KEYS and populate GROQ_API_KEY_01 … "
+				f"GROQ_API_KEY_{total_keys:02d} in your environment.",
+				)
+		# -------------------------------------------------------------------
 
 		return cls(
 			api_keys=keys,
@@ -89,6 +99,6 @@ class GroqConfig:
 			base_backoff=env_float("GROQ_BASE_BACKOFF", "1.0"),
 			max_backoff=env_float("GROQ_MAX_BACKOFF", "30.0"),
 			session_ttl_hours=env_int("GROQ_SESSION_TTL_HOURS", "24"),
-			debug_mode=os.environ.get("GROQ_DEBUG", "").lower() in ("1", "true", "yes"),
+			debug_mode=env_bool("GROQ_DEBUG", "false"),
 			log_level=os.environ.get("GROQ_LOG_LEVEL", "INFO").upper(),
 			)
