@@ -121,6 +121,14 @@ class ObservabilityLogger:
 		self._log = _make_logger(name, level, debug_mode, log_dir=log_dir)
 		self.debug_mode = debug_mode
 
+	@classmethod
+	def from_logger(cls, logger: logging.Logger, debug_mode: bool = False) -> "ObservabilityLogger":
+		"""Create from an already-configured stdlib logger (used by LoggerManager)."""
+		obj = object.__new__(cls)
+		obj._log = logger
+		obj.debug_mode = debug_mode
+		return obj
+
 	def _fmt(self, msg: str, ctx: RequestContext | None) -> str:
 		if ctx:
 			parts = " ".join(f"{k}={v}" for k, v in ctx.as_dict().items())

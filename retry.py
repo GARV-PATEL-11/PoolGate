@@ -83,7 +83,7 @@ def _is_retryable(exc: BaseException) -> bool:
 
 def _is_rate_limit(exc: BaseException) -> bool:
 	exc_type = type(exc).__name__
-	if exc_type == "RateLimitError":
+	if exc_type in ("RateLimitError", "RateLimitExceededError"):
 		return True
 	return isinstance(exc, InvalidResponseError) and getattr(exc, "status_code", None) == 429
 

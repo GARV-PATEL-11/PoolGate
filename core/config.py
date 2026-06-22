@@ -46,6 +46,15 @@ class GroqConfig:
 	data_dir: str | None = None
 	log_dir: str | None = None
 
+	# Resolved path configuration — computed from data_dir / log_dir.
+	# Access all filesystem paths through config.paths rather than
+	# constructing them inline in other modules.
+	paths: "PathConfig" = field(init=False)  # type: ignore[name-defined]
+
+	def __post_init__(self) -> None:
+		from core.path_config import PathConfig
+		self.paths = PathConfig(data_dir=self.data_dir, log_dir_override=self.log_dir)
+
 	@classmethod
 	def from_env(cls) -> GroqConfig:
 		def env_int(name: str, default: str) -> int:
