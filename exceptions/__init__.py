@@ -43,7 +43,8 @@ GroqServiceError
 ├── InvalidRequestError
 │   ├── MissingPromptError
 │   ├── InvalidMessageRoleError
-│   └── UnknownModelError
+│   ├── UnknownModelError
+│   └── CapabilityError
 ├── UnknownSchedulingStrategyError
 ├── APIKeyError
 │   ├── NoAvailableAPIKeyError
