@@ -1,12 +1,10 @@
 repos:
-  # ── Ruff: linting + formatting (replaces flake8, black, isort) ───────────────
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.11.13
+  # ── Black: code formatting ────────────────────────────────────────────────────
+  - repo: https://github.com/psf/black
+    rev: 26.1.0
     hooks:
-      - id: ruff
-        args: [ --fix, --exit-non-zero-on-fix ]
-        types_or: [ python, pyi ]
-      - id: ruff-format
+      - id: black
+        language_version: python3
         types_or: [ python, pyi ]
 
   # ── Mypy: static type checking ────────────────────────────────────────────────

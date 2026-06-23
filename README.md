@@ -29,21 +29,21 @@ PoolGate is an intelligent API orchestration and pooling system that aggregates 
 
 ## Features
 
-| Capability | Description |
-|---|---|
-| **Key Pooling** | Aggregate N Groq API keys behind a single client interface |
-| **6 Scheduling Strategies** | Round-robin, least-used, weighted, least-remaining-capacity, priority-failover, health-score |
-| **Rate-Aware Routing** | Per-key RPM / RPH / RPD sliding-window counters prevent 429s before they happen |
-| **Automatic Failover** | Keys that hit thresholds cool down; healthy keys absorb traffic instantly |
-| **Multi-Modal Clients** | Chat, tool-calling, structured output, moderation, transcription, synthesis |
-| **15 Model Configs** | Per-model rate-limit envelopes (Llama, Qwen, Whisper, Compound, PromptGuard, …) |
-| **Token Tracking** | Rolling-window + calendar-day views for input/output tokens per model |
-| **Quota Mirroring** | Reflects Groq's `x-ratelimit-remaining-*` headers — provider truth beats local estimates |
-| **Service Layer** | Health checks, retry with tenacity, session management, persistence |
-| **Structured Logging** | JSON log lines per category; `mask_key()` ensures raw keys never hit disk |
-| **Pluggable Persistence** | JSON (JSONL) or SQLite backends; survives process restarts |
-| **Thread + Async Safe** | All counters use `threading.Lock`; `RequestScheduler` exposes both sync and async acquisition |
-| **Zero-Friction Config** | Single `.env` file; per-model limits overridable via env vars |
+| Capability                  | Description                                                                                   |
+|-----------------------------|-----------------------------------------------------------------------------------------------|
+| **Key Pooling**             | Aggregate N Groq API keys behind a single client interface                                    |
+| **6 Scheduling Strategies** | Round-robin, least-used, weighted, least-remaining-capacity, priority-failover, health-score  |
+| **Rate-Aware Routing**      | Per-key RPM / RPH / RPD sliding-window counters prevent 429s before they happen               |
+| **Automatic Failover**      | Keys that hit thresholds cool down; healthy keys absorb traffic instantly                     |
+| **Multi-Modal Clients**     | Chat, tool-calling, structured output, moderation, transcription, synthesis                   |
+| **15 Model Configs**        | Per-model rate-limit envelopes (Llama, Qwen, Whisper, Compound, PromptGuard, …)               |
+| **Token Tracking**          | Rolling-window + calendar-day views for input/output tokens per model                         |
+| **Quota Mirroring**         | Reflects Groq's `x-ratelimit-remaining-*` headers — provider truth beats local estimates      |
+| **Service Layer**           | Health checks, retry with tenacity, session management, persistence                           |
+| **Structured Logging**      | JSON log lines per category; `mask_key()` ensures raw keys never hit disk                     |
+| **Pluggable Persistence**   | JSON (JSONL) or SQLite backends; survives process restarts                                    |
+| **Thread + Async Safe**     | All counters use `threading.Lock`; `RequestScheduler` exposes both sync and async acquisition |
+| **Zero-Friction Config**    | Single `.env` file; per-model limits overridable via env vars                                 |
 
 ---
 
@@ -330,14 +330,14 @@ See the [`examples/`](examples/) directory for 13 runnable scripts covering stre
 
 Six strategies are available; configure via `GroqConfig` or pass directly to `RequestScheduler`:
 
-| Strategy | Best for |
-|---|---|
-| `round_robin` | Even distribution, equal-capacity keys |
-| `least_used` | Minimise per-key total request count |
-| `weighted_round_robin` | Keys with different quotas / tiers |
-| `least_remaining_capacity` | Avoid hot keys near their limit |
-| `priority_failover` | Designate primary + standby keys |
-| `health_score` (default) | Composite scoring — latency, error rate, remaining capacity |
+| Strategy                   | Best for                                                    |
+|----------------------------|-------------------------------------------------------------|
+| `round_robin`              | Even distribution, equal-capacity keys                      |
+| `least_used`               | Minimise per-key total request count                        |
+| `weighted_round_robin`     | Keys with different quotas / tiers                          |
+| `least_remaining_capacity` | Avoid hot keys near their limit                             |
+| `priority_failover`        | Designate primary + standby keys                            |
+| `health_score` (default)   | Composite scoring — latency, error rate, remaining capacity |
 
 ```python
 from schedulers.scheduling_strategies import SchedulingStrategyType
@@ -351,16 +351,16 @@ config.scheduling_strategy = SchedulingStrategyType.LEAST_REMAINING_CAPACITY
 
 PoolGate ships per-model `ModelRateLimitConfig` subclasses for all current Groq models. Each has plan-appropriate defaults and can be overridden at runtime via env vars.
 
-| Family | Models |
-|---|---|
-| **Llama** | `llama-3.1-8b-instant`, `llama-3.3-70b-versatile`, `meta-llama-4-scout` |
-| **Llama Guard** | `meta-llama-prompt-guard-22m`, `meta-llama-prompt-guard-86m` |
-| **Qwen** | `qwen3-32b`, `qwen3-6.27b` |
-| **Groq Compound** | `groq-compound`, `groq-compound-mini` |
-| **Whisper** | `whisper-large-v3`, `whisper-large-v3-turbo` |
-| **OpenAI OSS** | `openai-gpt-oss-20b`, `openai-gpt-oss-120b`, `openai-gpt-oss-safeguard-20b` |
-| **Allam** | `allam-2-7b` |
-| **Orpheus** | `canopylabs-orpheus-v1-english`, `canopylabs-orpheus-arabic-saudi` |
+| Family            | Models                                                                      |
+|-------------------|-----------------------------------------------------------------------------|
+| **Llama**         | `llama-3.1-8b-instant`, `llama-3.3-70b-versatile`, `meta-llama-4-scout`     |
+| **Llama Guard**   | `meta-llama-prompt-guard-22m`, `meta-llama-prompt-guard-86m`                |
+| **Qwen**          | `qwen3-32b`, `qwen3-6.27b`                                                  |
+| **Groq Compound** | `groq-compound`, `groq-compound-mini`                                       |
+| **Whisper**       | `whisper-large-v3`, `whisper-large-v3-turbo`                                |
+| **OpenAI OSS**    | `openai-gpt-oss-20b`, `openai-gpt-oss-120b`, `openai-gpt-oss-safeguard-20b` |
+| **Allam**         | `allam-2-7b`                                                                |
+| **Orpheus**       | `canopylabs-orpheus-v1-english`, `canopylabs-orpheus-arabic-saudi`          |
 
 ---
 
@@ -368,13 +368,13 @@ PoolGate ships per-model `ModelRateLimitConfig` subclasses for all current Groq 
 
 PoolGate tracks usage across four orthogonal dimensions:
 
-| Tracker | Question answered | Time model |
-|---|---|---|
-| `UsageTracker` | "What did we send overall / today?" | Calendar day (UTC midnight) |
-| `TokenTracker` | "How many tokens in the last minute / day?" | Rolling window (anchored to *now*) |
-| `QuotaTracker` | "What does Groq say remains?" | Snapshot — last response header wins |
-| `AccountTracker` | "Which key is least loaded right now?" | Rolling 24 h per key |
-| `RequestTracker` | "Is this key within its RPM/RPH/RPD limits?" | Sliding window per key |
+| Tracker          | Question answered                            | Time model                           |
+|------------------|----------------------------------------------|--------------------------------------|
+| `UsageTracker`   | "What did we send overall / today?"          | Calendar day (UTC midnight)          |
+| `TokenTracker`   | "How many tokens in the last minute / day?"  | Rolling window (anchored to *now*)   |
+| `QuotaTracker`   | "What does Groq say remains?"                | Snapshot — last response header wins |
+| `AccountTracker` | "Which key is least loaded right now?"       | Rolling 24 h per key                 |
+| `RequestTracker` | "Is this key within its RPM/RPH/RPD limits?" | Sliding window per key               |
 
 All state is held in memory by default. `PersistenceService` writes/reads `poolgate_data/tracking/*.json` via the pluggable `JSONPersistence` or `SQLitePersistence` backend.
 

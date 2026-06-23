@@ -62,22 +62,22 @@ After this, git will no longer track those paths, even if the local files still 
 
 ## Project Layout
 
-| Package | Role |
-|---|---|
-| `core/` | Config, path resolution, structured logging |
-| `clients/` | Public multi-modal API surface (chat, tool, structured, moderation, …) |
-| `services/` | Orchestration — GroqService, RetryService, SessionManager, HealthService, PersistenceService |
-| `schedulers/` | Key selection — RequestScheduler + 6 SchedulingStrategy variants |
-| `key_manager/` | Per-key runtime state — APIKeyState, KeyPool |
-| `llm_models/` | Per-model rate-limit configs (env-overridable) |
-| `tracking/` | Usage, token, quota, account tracking + persistence |
-| `schemas/` | Pydantic v2 service-boundary contracts |
-| `exceptions/` | Typed hierarchy rooted at GroqServiceError |
-| `utils.py` | SlidingWindowCounter + shared helpers |
-| `retry.py` | RetryPolicy built on tenacity |
-| `examples/` | 13 runnable usage scripts |
-| `scripts/` | smoke_test.py — quick sanity check |
-| `tests/` | 53-file suite across unit/, integration/, providers/, e2e/ |
+| Package        | Role                                                                                         |
+|----------------|----------------------------------------------------------------------------------------------|
+| `core/`        | Config, path resolution, structured logging                                                  |
+| `clients/`     | Public multi-modal API surface (chat, tool, structured, moderation, …)                       |
+| `services/`    | Orchestration — GroqService, RetryService, SessionManager, HealthService, PersistenceService |
+| `schedulers/`  | Key selection — RequestScheduler + 6 SchedulingStrategy variants                             |
+| `key_manager/` | Per-key runtime state — APIKeyState, KeyPool                                                 |
+| `llm_models/`  | Per-model rate-limit configs (env-overridable)                                               |
+| `tracking/`    | Usage, token, quota, account tracking + persistence                                          |
+| `schemas/`     | Pydantic v2 service-boundary contracts                                                       |
+| `exceptions/`  | Typed hierarchy rooted at GroqServiceError                                                   |
+| `utils.py`     | SlidingWindowCounter + shared helpers                                                        |
+| `retry.py`     | RetryPolicy built on tenacity                                                                |
+| `examples/`    | 13 runnable usage scripts                                                                    |
+| `scripts/`     | smoke_test.py — quick sanity check                                                           |
+| `tests/`       | 53-file suite across unit/, integration/, providers/, e2e/                                   |
 
 ---
 
@@ -85,10 +85,10 @@ After this, git will no longer track those paths, even if the local files still 
 
 ### Style
 
-- **PEP 8** — enforced by `ruff` (line length 100)
+- **PEP 8** — enforced by `black` (line length 100)
 - **`from __future__ import annotations`** — at the top of every module
 - **Type hints** on every function and method signature
-- **`ruff format`** for consistent formatting (replaces Black)
+- **`black format`** for consistent formatting.
 
 ### Docstrings
 
@@ -160,11 +160,11 @@ uv run pytest tests/unit/test_key_pool.py -v
 
 **Test markers:**
 
-| Marker | Layer | Needs real key? |
-|---|---|---|
-| *(none)* | unit | ❌ |
-| *(none)* | providers / integration | ❌ (mock SDK) |
-| `e2e` | end-to-end | ✅ |
+| Marker   | Layer                   | Needs real key? |
+|----------|-------------------------|-----------------|
+| *(none)* | unit                    | ❌               |
+| *(none)* | providers / integration | ❌ (mock SDK)    |
+| `e2e`    | end-to-end              | ✅               |
 
 Unit and provider/integration tests must be fully offline — use `monkeypatch` or `pytest-mock`
 to stub the Groq SDK. Never make real API calls in unit or integration tests.
@@ -175,16 +175,16 @@ to stub the Groq SDK. Never make real API calls in unit or integration tests.
 
 The `.pre-commit-config.yaml` runs on every `git commit`:
 
-| Hook | What it checks |
-|---|---|
-| `ruff` | Linting — imports, unused vars, style violations, bugbear |
-| `ruff-format` | Formatting consistency |
-| `mypy --strict` | Static type checking |
-| `trailing-whitespace` | No trailing spaces |
-| `end-of-file-fixer` | Files end with `\n` |
-| `check-yaml` / `check-toml` | Syntax validity |
-| `detect-private-key` | **Blocks accidental `gsk_` commits** |
-| `commitizen` | Conventional Commits format on commit messages |
+| Hook                        | What it checks                                            |
+|-----------------------------|-----------------------------------------------------------|
+| `black`                     | Linting — imports, unused vars, style violations, bugbear |
+| `black-format`              | Formatting consistency                                    |
+| `mypy --strict`             | Static type checking                                      |
+| `trailing-whitespace`       | No trailing spaces                                        |
+| `end-of-file-fixer`         | Files end with `\n`                                       |
+| `check-yaml` / `check-toml` | Syntax validity                                           |
+| `detect-private-key`        | **Blocks accidental `gsk_` commits**                      |
+| `commitizen`                | Conventional Commits format on commit messages            |
 
 Run all hooks manually:
 
@@ -198,14 +198,14 @@ uv run pre-commit run --all-files
 
 ### Branch names
 
-| Prefix | Use for |
-|---|---|
-| `feat/` | New feature |
-| `fix/` | Bug fix |
+| Prefix      | Use for                                |
+|-------------|----------------------------------------|
+| `feat/`     | New feature                            |
+| `fix/`      | Bug fix                                |
 | `refactor/` | Internal refactor, no behaviour change |
-| `docs/` | Documentation only |
-| `test/` | New or updated tests |
-| `chore/` | Tooling, CI, dependency bumps |
+| `docs/`     | Documentation only                     |
+| `test/`     | New or updated tests                   |
+| `chore/`    | Tooling, CI, dependency bumps          |
 
 Example: `feat/async-key-pool`, `fix/jsonl-trailing-newline`
 
@@ -223,6 +223,7 @@ Scopes map to packages: `tracking`, `clients`, `services`, `schedulers`, `key_ma
 `llm_models`, `schemas`, `exceptions`, `core`, `tests`, `ci`, `docs`
 
 Examples:
+
 ```
 feat(schedulers): add least-remaining-capacity strategy
 fix(tracking): handle trailing newlines in JSONL persistence load
@@ -252,6 +253,7 @@ chore(ci): add GitHub Actions test workflow with uv
 Use [GitHub Issues](https://github.com/GARV-PATEL-11/PoolGate/issues).
 
 Please include:
+
 - Python version (`python --version`) and uv version (`uv --version`)
 - PoolGate commit hash (`git rev-parse --short HEAD`)
 - Minimal reproduction steps

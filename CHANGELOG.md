@@ -10,6 +10,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Fixed
+
 - Trailing commas in generator `for`-clauses in `core/logger_manager.py` that caused a `SyntaxError` on Python 3.14 (blocked all tests).
 - `_fh` type annotation in `LoggerManager` corrected from `str` to `Path`.
 - `CapabilityError` added to the exception hierarchy docstring in `exceptions/__init__.py`.
@@ -18,12 +19,14 @@ Versions follow [Semantic Versioning](https://semver.org/).
 - `CLAUDE.md` path documentation corrected: constant is `_DEFAULT_BASE_DIR`, path is `<project_root>/poolgate_data`.
 
 ### Added
+
 - GitHub Actions CI workflow (`.github/workflows/ci.yml`) running tests on Python 3.10–3.13.
 - `CHANGELOG.md` (this file), required by the CONTRIBUTING.md PR checklist.
-- `[tool.ruff]` and `[tool.mypy]` sections in `pyproject.toml` for consistent local tooling.
+- `[tool.black]` and `[tool.mypy]` sections in `pyproject.toml` for consistent local tooling.
 - `poolgate_data/` added to `.gitignore` (previously only its subdirectories were listed).
 
 ### Changed
+
 - `pre-commit-config.yaml` renamed to `.pre-commit-config.yaml` so `pre-commit install` finds it.
 - `.env.example` comments clarify that values shown are recommended starting points, not built-in defaults.
 - `services/health_service.py` gains `from __future__ import annotations` to match the rest of the codebase.
@@ -34,10 +37,12 @@ Versions follow [Semantic Versioning](https://semver.org/).
 ## [0.1.1] — 2026-06-23
 
 ### Added
+
 - EditorConfig (`.editorconfig`) with per-file-type formatting rules.
 - CONTRIBUTING.md guide covering setup, conventions, test instructions, and PR checklist.
 
 ### Changed
+
 - Max line length in EditorConfig adjusted to 100 for non-Python files; 120 for Python.
 - Added `.claude` to `.gitignore`.
 
@@ -48,6 +53,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 Initial release of PoolGate.
 
 ### Added
+
 - `GroqService` public facade with `invoke`, `chat`, `stream`, `structured`, `invoke_tools`, `moderate`, `transcribe`, `synthesize` and async/batch variants.
 - `RequestScheduler` with six pluggable `SchedulingStrategy` implementations.
 - `KeyPool` / `APIKeyState` with thread-safe sliding-window RPM/RPH/RPD counters and circuit-breaker.
