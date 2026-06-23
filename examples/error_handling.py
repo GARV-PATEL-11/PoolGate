@@ -1,17 +1,14 @@
 """Error handling — catch specific PoolGate exception types.
 
-When POOLGATE_DATA_DIR is set, errors are also written to logs/error.log
-alongside the normal application logs.
+Errors are written to logs/error.log inside the configured data directory.
 
 Environment (.env or shell):
     TOTAL_GROQ_KEYS=1
     GROQ_API_KEY_01=gsk_...
-    POOLGATE_DATA_DIR=./poolgate_data
 """
 
 from __future__ import annotations
 
-import os
 import sys
 
 from dotenv import load_dotenv
@@ -27,7 +24,45 @@ from services.provider_service import GroqService
 
 
 load_dotenv()
-os.environ.setdefault("POOLGATE_DATA_DIR", "./poolgate_data")
+
+PROMPTS = [
+	"What is 2 + 2?",
+	"Name the planets in our solar system.",
+	"Write a haiku about Python.",
+	"What is the boiling point of water in Celsius?",
+	"Who wrote Romeo and Juliet?",
+	"What is the capital of France?",
+	"Explain photosynthesis in simple terms.",
+	"What is the speed of light?",
+	"Define gravity.",
+	"Translate 'good morning' into Spanish.",
+	"What is the square root of 144?",
+	"List the continents of the world.",
+	"Who discovered gravity?",
+	"What is AI?",
+	"Write a short joke about programmers.",
+	"What is the largest ocean on Earth?",
+	"Explain recursion in programming.",
+	"What is HTTP?",
+	"What is 10 factorial?",
+	"Name three programming languages.",
+	"What is a database?",
+	"What is machine learning?",
+	"Convert 100 Celsius to Fahrenheit.",
+	"What is the tallest mountain in the world?",
+	"Who is Albert Einstein?",
+	"What is an API?",
+	"Explain JSON in one sentence.",
+	"What is 5 * 6?",
+	"What is the meaning of life (philosophically)?",
+	"Write a Python one-liner to reverse a string.",
+	"What is Docker?",
+	"What is Git used for?",
+	"Explain cloud computing briefly.",
+	"What is cybersecurity?",
+	"Name 5 animals that live in the ocean.",
+	"What is the Pythagorean theorem?",
+]
 
 
 def safe_invoke(service: GroqService, prompt: str) -> str | None:
@@ -61,21 +96,37 @@ def safe_invoke(service: GroqService, prompt: str) -> str | None:
 def main() -> None:
 	service = GroqService()
 
-	result = safe_invoke(service, "Say hello in one word.")
-	if result:
-		print(f"Success: {result.strip()}")
+	# -------------------------
+	# BATCH PROMPT EXECUTION
+	# -------------------------
+	print("\n=== SAFE INVOKE BATCH ===")
+	for i, prompt in enumerate(PROMPTS, 1):
+		result = safe_invoke(service, prompt)
+		if result:
+			print(f"[{i}] {prompt}")
+			print(f"    → Success: {result.strip()}")
+		else:
+			print(f"[{i}] {prompt}")
+			print("    → Failed (handled safely)")
 
-	# Demonstrate invalid role — error is also written to logs/error.log
+	# -------------------------
+	# INVALID ROLE TEST
+	# -------------------------
+	print("\n=== INVALID ROLE TEST ===")
 	try:
 		service.chat(
 			messages=[{"role": "narrator", "content": "Tell the story."}],
 			model="llama-3.3-70b-versatile",
 			)
 	except InvalidRequestError as e:
-		print(f"\nExpected error for invalid role: {type(e).__name__}: {e}")
+		print(f"Expected error for invalid role: {type(e).__name__}: {e}")
 
+	# -------------------------
+	# HEALTH + STATS
+	# -------------------------
 	health = service.health()
 	stats = service.get_global_stats()
+
 	print(f"\nPool: {health.status}, active keys: {health.active_keys}")
 	print(
 		f"Requests: {stats['total_requests']} total, "
@@ -84,8 +135,9 @@ def main() -> None:
 		)
 
 	service.flush_tracking()
-	if service._config.log_dir:
-		print(f"\nLogs written to {service._config.log_dir}/")
+
+	if service._config.paths.log_dir:
+		print(f"\nLogs written to {service._config.paths.log_dir}/")
 		print("  general.log — all messages")
 		print("  error.log   — errors only")
 		print("  request.log — request lifecycle events")

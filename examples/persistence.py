@@ -1,10 +1,9 @@
 """Persistence — auto-save tracking data and request logs to poolgate_data/.
 
-Set POOLGATE_DATA_DIR and PoolGate writes all tracking state and request
-details to structured JSON files automatically — no manual PersistenceService
-setup required.
+PoolGate writes all tracking state and request details to structured JSON
+files automatically — no manual PersistenceService setup required.
 
-Layout created under POOLGATE_DATA_DIR:
+Layout created under the data directory (poolgate_data/ by default):
     tracking/
         usage.json       daily request counts (requests, success, failures)
         tokens.json      per-model token usage by day
@@ -13,25 +12,21 @@ Layout created under POOLGATE_DATA_DIR:
         YYYY-MM-DD.jsonl one JSON line per request with full execution details
     logs/
         general.log      all log messages
-        info.log         INFO and above
         error.log        ERROR and above
         request.log      request lifecycle events only
 
 Call flush_tracking() to save in-memory state to disk.  Data is reloaded
-automatically the next time GroqService() is constructed with the same
-POOLGATE_DATA_DIR.
+automatically the next time GroqService() is constructed.
 
 Environment (.env or shell):
     TOTAL_GROQ_KEYS=1
     GROQ_API_KEY_01=gsk_...
-    POOLGATE_DATA_DIR=./poolgate_data
 """
 
 from __future__ import annotations
 
-import glob
 import json
-import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -40,34 +35,32 @@ from services.provider_service import GroqService
 
 
 load_dotenv()
-os.environ.setdefault("POOLGATE_DATA_DIR", "./poolgate_data")
 
 
-def _show_tracking_files(data_dir: str) -> None:
+def _show_tracking_files(base_dir: Path) -> None:
 	"""Print a summary of each tracking JSON file that was written."""
-	tracking_dir = os.path.join(data_dir, "tracking")
-	for path in sorted(glob.glob(os.path.join(tracking_dir, "*.json"))):
-		name = os.path.basename(path)
+	tracking_dir = base_dir / "tracking"
+	for path in sorted(tracking_dir.glob("*.json")):
 		with open(path) as f:
 			data = json.load(f)
 		days = sorted(data.keys())
-		print(f"  {name}: {len(days)} day(s) — {days}")
+		print(f"  {path.name}: {len(days)} day(s) — {days}")
 
 
-def _show_request_journal(data_dir: str) -> None:
+def _show_request_journal(base_dir: Path) -> None:
 	"""Print the most recent entries from today's request journal."""
-	requests_dir = os.path.join(data_dir, "requests")
-	journals = sorted(glob.glob(os.path.join(requests_dir, "*.jsonl")))
+	requests_dir = base_dir / "requests"
+	journals = sorted(requests_dir.glob("*.jsonl")) if requests_dir.is_dir() else []
 	if not journals:
 		print("  (no request journal entries yet)")
 		return
 	latest = journals[-1]
-	print(f"  {os.path.basename(latest)}:")
+	print(f"  {latest.name}:")
 	with open(latest) as f:
 		lines = f.readlines()
 	for line in lines:
 		line = line.strip()
-		if not line:  # ← skip blank lines (EOF newline, gaps, etc.)
+		if not line:
 			continue
 		try:
 			entry = json.loads(line)
@@ -85,9 +78,9 @@ def _show_request_journal(data_dir: str) -> None:
 def main() -> None:
 	# --- First run: make some requests and flush ---
 	service = GroqService()
-	data_dir = service._config.data_dir
+	base_dir = service._config.paths.base_dir
 
-	print(f"Data directory: {data_dir}")
+	print(f"Data directory: {base_dir}")
 	print()
 
 	response = service.invoke(
@@ -107,12 +100,12 @@ def main() -> None:
 	print()
 
 	# --- Show what was written ---
-	if data_dir:
+	if base_dir:
 		print("Tracking files:")
-		_show_tracking_files(data_dir)
+		_show_tracking_files(base_dir)
 		print()
 		print("Request journal (latest entries):")
-		_show_request_journal(data_dir)
+		_show_request_journal(base_dir)
 		print()
 
 	# --- Second run: reload verifies state survives across restarts ---
@@ -125,8 +118,8 @@ def main() -> None:
 		f"{snap.get('successful_requests', 0)} successful",
 		)
 
-	if data_dir:
-		print(f"\nLogs are at {service._config.log_dir}/")
+	if base_dir:
+		print(f"\nLogs are at {service._config.paths.log_dir}/")
 
 
 if __name__ == "__main__":

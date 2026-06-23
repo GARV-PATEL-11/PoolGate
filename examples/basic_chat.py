@@ -3,12 +3,9 @@
 Environment (.env or shell):
     TOTAL_GROQ_KEYS=1
     GROQ_API_KEY_01=gsk_...
-    POOLGATE_DATA_DIR=./poolgate_data   # enables auto-persistence + file logs
 """
 
 from __future__ import annotations
-
-import os
 
 from dotenv import load_dotenv
 
@@ -17,7 +14,6 @@ from services.provider_service import GroqService
 
 
 load_dotenv()
-os.environ.setdefault("POOLGATE_DATA_DIR", "./poolgate_data")
 
 
 def main() -> None:
@@ -33,8 +29,8 @@ def main() -> None:
 	print(f"Latency: {response.latency:.3f}s  Model: {response.model}")
 
 	service.flush_tracking()
-	if service._config.data_dir:
-		print(f"\nData saved to {service._config.data_dir}/")
+	if service._config.paths.base_dir:
+		print(f"\nData saved to {service._config.paths.base_dir}/")
 
 
 if __name__ == "__main__":
