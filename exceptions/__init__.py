@@ -59,8 +59,11 @@ GroqServiceError
 ├── InvalidResponseError
 ├── RetryExhaustedError
 ├── StructuredOutputError
-└── SessionError
-    └── SessionExpiredError
+├── SessionError
+│   └── SessionExpiredError
+└── ThrottleError
+    ├── CapabilityThrottledError
+    └── ModelThrottledError
 """
 
 from exceptions.base import GroqServiceError
@@ -98,6 +101,11 @@ from exceptions.request import (
 from exceptions.response import (
     InvalidResponseError,
     RetryExhaustedError,
+)
+from exceptions.throttle import (
+    CapabilityThrottledError,
+    ModelThrottledError,
+    ThrottleError,
 )
 from exceptions.transport import (
     TransportError,
@@ -141,4 +149,8 @@ __all__ = [
     "SessionError",
     "SessionExpiredError",
     "PersistenceError",
+    # Throttling
+    "ThrottleError",
+    "CapabilityThrottledError",
+    "ModelThrottledError",
 ]

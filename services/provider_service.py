@@ -48,6 +48,7 @@ from schemas.runtime import (
 from services.health_service import HealthService
 from services.persistence_service import PersistenceService, RequestJournal
 from services.session_service import SessionManager
+from throttling import ThrottleConfig, ThrottleMiddleware
 from tracking.manager import TrackingManager
 
 T = TypeVar("T", bound=BaseModel)
@@ -114,6 +115,7 @@ class GroqService:
         session_id: str | None = None,
         debug_mode: bool = False,
         persistence: PersistenceService | None = None,
+        throttle_config: ThrottleConfig | None = None,
     ) -> None:
         """
         persistence: optional PersistenceService used for all three trackers.
@@ -188,6 +190,7 @@ class GroqService:
         self._moderation_client = ModerationClient()
         self._transcription_client = TranscriptionClient()
         self._synthesis_client = SynthesisClient()
+        self._throttle = ThrottleMiddleware(throttle_config)
         self._default_session_id = session_id
 
         self._logger.info(
@@ -363,6 +366,24 @@ class GroqService:
         capability: str = "api",
     ) -> Any:
         """Key-rotating dispatch for non-GroqResponse results (moderation, transcription, synthesis)."""
+        handle = self._throttle.check(capability, model, request_id)
+        try:
+            return self._run_rotation_generic_inner(
+                model, request_id, session_id, config, call, tokens_extractor, capability
+            )
+        finally:
+            handle.release()
+
+    def _run_rotation_generic_inner(
+        self,
+        model: str,
+        request_id: str,
+        session_id: str,
+        config: RequestConfig,
+        call: Callable[[APIKeyState], Any],
+        tokens_extractor: Callable[[Any], tuple[int, int]] | None = None,
+        capability: str = "api",
+    ) -> Any:
         ctx = RequestContext(request_id=request_id, session_id=session_id, model=model)
         attempts = config.retries + 1
         last_exc: Exception | None = None
@@ -481,6 +502,24 @@ class GroqService:
         capability: str = "api",
     ) -> Any:
         """Async key-rotating dispatch for non-GroqResponse results."""
+        handle = self._throttle.check(capability, model, request_id)
+        try:
+            return await self._async_run_rotation_generic_inner(
+                model, request_id, session_id, config, call, tokens_extractor, capability
+            )
+        finally:
+            handle.release()
+
+    async def _async_run_rotation_generic_inner(
+        self,
+        model: str,
+        request_id: str,
+        session_id: str,
+        config: RequestConfig,
+        call: Callable[[APIKeyState], Awaitable[Any]],
+        tokens_extractor: Callable[[Any], tuple[int, int]] | None = None,
+        capability: str = "api",
+    ) -> Any:
         ctx = RequestContext(request_id=request_id, session_id=session_id, model=model)
         attempts = config.retries + 1
         last_exc: Exception | None = None
@@ -609,6 +648,21 @@ class GroqService:
         than waiting and retrying key A. RetryService remains available for
         call sites that don't rotate keys (e.g. a single fixed-key retry).
         """
+        handle = self._throttle.check(capability, model, request_id)
+        try:
+            return self._run_with_rotation_inner(model, request_id, session_id, config, call, capability)
+        finally:
+            handle.release()
+
+    def _run_with_rotation_inner(
+        self,
+        model: str,
+        request_id: str,
+        session_id: str,
+        config: RequestConfig,
+        call: Callable[[APIKeyState], GroqResponse],
+        capability: str = "chat",
+    ) -> GroqResponse:
         ctx = RequestContext(request_id=request_id, session_id=session_id, model=model)
         attempts = config.retries + 1
         last_exc: Exception | None = None
@@ -709,6 +763,21 @@ class GroqService:
         ) from last_exc
 
     async def _async_run_with_rotation(
+        self,
+        model: str,
+        request_id: str,
+        session_id: str,
+        config: RequestConfig,
+        call: Callable[[APIKeyState], object],
+        capability: str = "chat",
+    ) -> GroqResponse:
+        handle = self._throttle.check(capability, model, request_id)
+        try:
+            return await self._async_run_with_rotation_inner(model, request_id, session_id, config, call, capability)
+        finally:
+            handle.release()
+
+    async def _async_run_with_rotation_inner(
         self,
         model: str,
         request_id: str,
@@ -1107,70 +1176,74 @@ class GroqService:
         sid = self._resolve_session(session_id, rid)
         cfg = config or RequestConfig(stream=True, retries=self._config.max_retries)
         payload = messages or _prompt_to_messages(prompt or "", system)
+        handle = self._throttle.check("chat", model, rid)
 
         attempts = cfg.retries + 1
         last_exc: Exception | None = None
 
-        for attempt in range(attempts):
-            key = self._scheduler.acquire_key(rid, model=model)
-            start = time.perf_counter()
-            usage_holder: dict[str, TokenUsage] = {}
-            first_chunk_yielded = False
-            try:
-                for delta in self._chat_client.stream(
-                    api_key=key.raw_key,
-                    model=model,
-                    messages=payload,
-                    config=cfg,
-                    session_id=sid,
-                    api_key_id=key.key_id,
-                    request_id=rid,
-                    on_usage=lambda u, _h=usage_holder: _h.__setitem__("usage", u),  # noqa: B023
-                ):
-                    first_chunk_yielded = True
-                    yield delta
-                usage = usage_holder.get("usage", TokenUsage())
-                self._scheduler.release_key(
-                    key,
-                    latency=time.perf_counter() - start,
-                    tokens_in=usage.prompt_tokens,
-                    tokens_out=usage.completion_tokens,
-                )
-                self._record_success(
-                    sid,
-                    model,
-                    GroqResponse(
-                        text="",
+        try:
+            for attempt in range(attempts):
+                key = self._scheduler.acquire_key(rid, model=model)
+                start = time.perf_counter()
+                usage_holder: dict[str, TokenUsage] = {}
+                first_chunk_yielded = False
+                try:
+                    for delta in self._chat_client.stream(
+                        api_key=key.raw_key,
                         model=model,
-                        usage=usage,
-                        latency=time.perf_counter() - start,
+                        messages=payload,
+                        config=cfg,
                         session_id=sid,
-                        request_id=rid,
                         api_key_id=key.key_id,
-                    ),
-                    time.perf_counter() - start,
-                    retried=attempt > 0,
-                )
-                return
-            except Exception as exc:
-                last_exc = exc
-                self._scheduler.mark_key_failure(key, is_rate_limit=_is_rate_limit(exc))
-                if first_chunk_yielded:
-                    # Output already delivered to the caller — retrying now
-                    # would duplicate it. Surface the failure immediately.
-                    raise
-                self._logger.warning(
-                    f"Stream attempt {attempt + 1}/{attempts} failed before "
-                    f"first chunk: {type(exc).__name__}: {exc}",
-                )
+                        request_id=rid,
+                        on_usage=lambda u, _h=usage_holder: _h.__setitem__("usage", u),  # noqa: B023
+                    ):
+                        first_chunk_yielded = True
+                        yield delta
+                    usage = usage_holder.get("usage", TokenUsage())
+                    self._scheduler.release_key(
+                        key,
+                        latency=time.perf_counter() - start,
+                        tokens_in=usage.prompt_tokens,
+                        tokens_out=usage.completion_tokens,
+                    )
+                    self._record_success(
+                        sid,
+                        model,
+                        GroqResponse(
+                            text="",
+                            model=model,
+                            usage=usage,
+                            latency=time.perf_counter() - start,
+                            session_id=sid,
+                            request_id=rid,
+                            api_key_id=key.key_id,
+                        ),
+                        time.perf_counter() - start,
+                        retried=attempt > 0,
+                    )
+                    return
+                except Exception as exc:
+                    last_exc = exc
+                    self._scheduler.mark_key_failure(key, is_rate_limit=_is_rate_limit(exc))
+                    if first_chunk_yielded:
+                        # Output already delivered to the caller — retrying now
+                        # would duplicate it. Surface the failure immediately.
+                        raise
+                    self._logger.warning(
+                        f"Stream attempt {attempt + 1}/{attempts} failed before "
+                        f"first chunk: {type(exc).__name__}: {exc}",
+                    )
 
-        self._record_failure(sid, model, retried=attempts > 1)
-        raise RetryExhaustedError(
-            f"All {attempts} stream attempt(s) failed before producing output. Last error: {last_exc}",
-            attempts=attempts,
-            last_exc=last_exc,
-            request_id=rid,
-        ) from last_exc
+            self._record_failure(sid, model, retried=attempts > 1)
+            raise RetryExhaustedError(
+                f"All {attempts} stream attempt(s) failed before producing output. Last error: {last_exc}",
+                attempts=attempts,
+                last_exc=last_exc,
+                request_id=rid,
+            ) from last_exc
+        finally:
+            handle.release()
 
     async def async_stream(
         self,
@@ -1195,68 +1268,72 @@ class GroqService:
         sid = self._resolve_session(session_id, rid)
         cfg = config or RequestConfig(stream=True, retries=self._config.max_retries)
         payload = messages or _prompt_to_messages(prompt or "", system)
+        handle = self._throttle.check("chat", model, rid)
 
         attempts = cfg.retries + 1
         last_exc: Exception | None = None
 
-        for attempt in range(attempts):
-            key = await self._scheduler.async_acquire_key(rid, model=model)
-            start = time.perf_counter()
-            usage_holder: dict[str, TokenUsage] = {}
-            first_chunk_yielded = False
-            try:
-                async for delta in self._chat_client.async_stream(
-                    api_key=key.raw_key,
-                    model=model,
-                    messages=payload,
-                    config=cfg,
-                    session_id=sid,
-                    api_key_id=key.key_id,
-                    request_id=rid,
-                    on_usage=lambda u, _h=usage_holder: _h.__setitem__("usage", u),  # noqa: B023
-                ):
-                    first_chunk_yielded = True
-                    yield delta
-                usage = usage_holder.get("usage", TokenUsage())
-                self._scheduler.release_key(
-                    key,
-                    latency=time.perf_counter() - start,
-                    tokens_in=usage.prompt_tokens,
-                    tokens_out=usage.completion_tokens,
-                )
-                self._record_success(
-                    sid,
-                    model,
-                    GroqResponse(
-                        text="",
+        try:
+            for attempt in range(attempts):
+                key = await self._scheduler.async_acquire_key(rid, model=model)
+                start = time.perf_counter()
+                usage_holder: dict[str, TokenUsage] = {}
+                first_chunk_yielded = False
+                try:
+                    async for delta in self._chat_client.async_stream(
+                        api_key=key.raw_key,
                         model=model,
-                        usage=usage,
-                        latency=time.perf_counter() - start,
+                        messages=payload,
+                        config=cfg,
                         session_id=sid,
-                        request_id=rid,
                         api_key_id=key.key_id,
-                    ),
-                    time.perf_counter() - start,
-                    retried=attempt > 0,
-                )
-                return
-            except Exception as exc:
-                last_exc = exc
-                self._scheduler.mark_key_failure(key, is_rate_limit=_is_rate_limit(exc))
-                if first_chunk_yielded:
-                    raise
-                self._logger.warning(
-                    f"Async stream attempt {attempt + 1}/{attempts} failed before "
-                    f"first chunk: {type(exc).__name__}: {exc}",
-                )
+                        request_id=rid,
+                        on_usage=lambda u, _h=usage_holder: _h.__setitem__("usage", u),  # noqa: B023
+                    ):
+                        first_chunk_yielded = True
+                        yield delta
+                    usage = usage_holder.get("usage", TokenUsage())
+                    self._scheduler.release_key(
+                        key,
+                        latency=time.perf_counter() - start,
+                        tokens_in=usage.prompt_tokens,
+                        tokens_out=usage.completion_tokens,
+                    )
+                    self._record_success(
+                        sid,
+                        model,
+                        GroqResponse(
+                            text="",
+                            model=model,
+                            usage=usage,
+                            latency=time.perf_counter() - start,
+                            session_id=sid,
+                            request_id=rid,
+                            api_key_id=key.key_id,
+                        ),
+                        time.perf_counter() - start,
+                        retried=attempt > 0,
+                    )
+                    return
+                except Exception as exc:
+                    last_exc = exc
+                    self._scheduler.mark_key_failure(key, is_rate_limit=_is_rate_limit(exc))
+                    if first_chunk_yielded:
+                        raise
+                    self._logger.warning(
+                        f"Async stream attempt {attempt + 1}/{attempts} failed before "
+                        f"first chunk: {type(exc).__name__}: {exc}",
+                    )
 
-        self._record_failure(sid, model, retried=attempts > 1)
-        raise RetryExhaustedError(
-            f"All {attempts} async stream attempt(s) failed before producing output. Last error: {last_exc}",
-            attempts=attempts,
-            last_exc=last_exc,
-            request_id=rid,
-        ) from last_exc
+            self._record_failure(sid, model, retried=attempts > 1)
+            raise RetryExhaustedError(
+                f"All {attempts} async stream attempt(s) failed before producing output. Last error: {last_exc}",
+                attempts=attempts,
+                last_exc=last_exc,
+                request_id=rid,
+            ) from last_exc
+        finally:
+            handle.release()
 
     async def batch(
         self,
