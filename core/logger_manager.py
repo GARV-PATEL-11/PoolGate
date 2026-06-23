@@ -411,7 +411,7 @@ class LoggerManager:
 					isinstance(h, logging.StreamHandler)
 					and not isinstance(h, logging.FileHandler)
 			)
-				for h in logger.handlers,
+				for h in logger.handlers
 			)
 		if not has_console:
 			ch = logging.StreamHandler(sys.stdout)
@@ -422,7 +422,7 @@ class LoggerManager:
 		# File handlers — added only once; all paths come from PathConfig.
 		has_file = any(
 			isinstance(h, logging.handlers.RotatingFileHandler)
-				for h in logger.handlers,
+				for h in logger.handlers
 			)
 		if not has_file and self._paths.general_log:
 			logger.addHandler(self._fh(self._paths.general_log, logging.DEBUG))
@@ -434,7 +434,7 @@ class LoggerManager:
 		return logger
 
 	@staticmethod
-	def _fh(path: str, level: int) -> logging.Handler:
+	def _fh(path: Path, level: int) -> logging.Handler:
 		h: logging.Handler = logging.handlers.RotatingFileHandler(
 			path, maxBytes=_MAX_BYTES, backupCount=_BACKUP_COUNT, encoding="utf-8",
 			)
