@@ -1,0 +1,10 @@
+{
+  "2026-06-23": {
+    "date": "2026-06-23",
+    "failed_requests": 0,
+    "requests": 616,
+    "successful_requests": 616,
+    "tokens_in": 64557,
+    "tokens_out": 58840
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "2026-06-23": {
+    "key_0": {
+      "requests": 87,
+      "tokens": 13257
+    },
+    "key_1": {
+      "requests": 79,
+      "tokens": 15077
+    },
+    "key_2": {
+      "requests": 69,
+      "tokens": 14073
+    },
+    "key_3": {
+      "requests": 66,
+      "tokens": 15328
+    },
+    "key_4": {
+      "requests": 47,
+      "tokens": 8700
+    },
+    "key_5": {
+      "requests": 52,
+      "tokens": 11122
+    },
+    "key_6": {
+      "requests": 48,
+      "tokens": 11118
+    },
+    "key_7": {
+      "requests": 61,
+      "tokens": 12644
+    },
+    "key_8": {
+      "requests": 49,
+      "tokens": 11005
+    },
+    "key_9": {
+      "requests": 58,
+      "tokens": 11073
+    }
+  }
+}
