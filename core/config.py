@@ -1,6 +1,7 @@
 """
 Configuration loader.
 All settings are pulled from environment variables so no secrets live in code.
+Filesystem paths are resolved solely by PathConfig — no path logic here.
 """
 
 from __future__ import annotations
@@ -42,12 +43,9 @@ class GroqConfig:
 	debug_mode: bool = False
 	log_level: str = "INFO"
 
-	# Path system (single source of truth)
-	paths: PathConfig = field(init=False)
-
-	def __post_init__(self) -> None:
-		# Paths must already be fully resolved (no env logic here)
-		self.paths = PathConfig()
+	# Path system — fully owned by PathConfig, no path logic in this class.
+	# Pass an explicit PathConfig to override (e.g. in tests).
+	paths: PathConfig = field(default_factory=PathConfig)
 
 	@classmethod
 	def from_env(cls) -> GroqConfig:
@@ -95,7 +93,7 @@ class GroqConfig:
 				f"Set TOTAL_GROQ_KEYS and GROQ_API_KEY_01 … GROQ_API_KEY_{total_keys:02d}.",
 				)
 
-		# --- build config (NO PATH LOGIC HERE ANYMORE) ---
+		# --- build config (no path logic here) ---
 		return cls(
 			api_keys=keys,
 			max_rpm_per_key=env_int("GROQ_MAX_RPM", "30"),

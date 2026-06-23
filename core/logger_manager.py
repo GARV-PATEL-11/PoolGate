@@ -30,7 +30,7 @@ Key safety
 
 Example::
 
-    paths   = PathConfig(data_dir="/var/poolgate")
+    paths   = PathConfig(base_dir=Path("/var/poolgate"))
     manager = LoggerManager(paths, level="INFO", debug=False)
     logger  = manager.get()                         # ObservabilityLogger
     slogger = manager.get_structured()              # StructuredLogger
@@ -47,7 +47,6 @@ from __future__ import annotations
 import json
 import logging
 import logging.handlers
-import os
 import re
 import sys
 import threading
@@ -55,6 +54,7 @@ import time
 from collections.abc import Generator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 
 from core.path_config import PathConfig
@@ -335,7 +335,7 @@ class _JsonWriter:
 	to instantiate even when logging is disabled.
 	"""
 
-	def __init__(self, path: str | None) -> None:
+	def __init__(self, path: Path | None) -> None:
 		self._path = path
 		self._lock = threading.Lock()
 
@@ -428,13 +428,8 @@ class LoggerManager:
 			logger.addHandler(self._fh(self._paths.general_log, logging.DEBUG))
 			if self._paths.error_log:
 				logger.addHandler(self._fh(self._paths.error_log, logging.ERROR))
-			if self._debug and self._paths.log_dir:
-				logger.addHandler(
-					self._fh(
-						os.path.join(self._paths.log_dir, "debug.log"),
-						logging.DEBUG,
-						),
-					)
+			if self._debug and self._paths.debug_log:
+				logger.addHandler(self._fh(self._paths.debug_log, logging.DEBUG))
 
 		return logger
 
