@@ -27,6 +27,7 @@ import sqlite3
 import tempfile
 import threading
 from abc import ABC, abstractmethod
+from pathlib import Path
 
 from exceptions.persistence import PersistenceError
 
@@ -58,14 +59,14 @@ class JSONPersistence(Persistence):
 		  "2026-06-18": {...}
 		}
 
-	Writes are atomic (write to a temp file, then os.replace) so a crash
+	Writes are atomic (write to a temp file, then rename) so a crash
 	mid-write can't corrupt months of history.
 	"""
 
-	def __init__(self, path: str = "usage.json") -> None:
-		self._path = path
+	def __init__(self, path: Path | str = "usage.json") -> None:
+		self._path: Path = Path(path)
 		self._lock = threading.Lock()
-		if not os.path.exists(self._path):
+		if not self._path.exists():
 			self._write({})
 
 	def load_all(self) -> dict[str, dict]:
@@ -85,39 +86,39 @@ class JSONPersistence(Persistence):
 	# -- internals ----------------------------------------------------------
 
 	def _read_unlocked(self) -> dict[str, dict]:
-		if not os.path.exists(self._path):
+		if not self._path.exists():
 			return {}
 		try:
 			with open(self._path, encoding="utf-8") as f:
 				return json.load(f)
 		except (OSError, json.JSONDecodeError) as exc:
 			raise PersistenceError(
-				f"Failed to load JSON persistence file {self._path!r}: {exc}",
+				f"Failed to load JSON persistence file {str(self._path)!r}: {exc}",
 				backend="json",
-				path=self._path,
+				path=str(self._path),
 				) from exc
 
 	def _write(self, data: dict[str, dict]) -> None:
-		directory = os.path.dirname(os.path.abspath(self._path)) or "."
+		directory = self._path.resolve().parent
 		try:
-			fd, tmp_path = tempfile.mkstemp(dir=directory, prefix=".usage_", suffix=".tmp")
+			fd, tmp_path_str = tempfile.mkstemp(dir=str(directory), prefix=".usage_", suffix=".tmp")
 		except OSError as exc:
 			raise PersistenceError(
-				f"Failed to create temp persistence file beside {self._path!r}: {exc}",
+				f"Failed to create temp persistence file beside {str(self._path)!r}: {exc}",
 				backend="json",
-				path=self._path,
+				path=str(self._path),
 				) from exc
+		tmp_path = Path(tmp_path_str)
 		try:
 			with os.fdopen(fd, "w", encoding="utf-8") as f:
 				json.dump(data, f, indent=2, sort_keys=True)
-			os.replace(tmp_path, self._path)
+			tmp_path.replace(self._path)
 		except OSError as exc:
-			if os.path.exists(tmp_path):
-				os.remove(tmp_path)
+			tmp_path.unlink(missing_ok=True)
 			raise PersistenceError(
-				f"Failed to write JSON persistence file {self._path!r}: {exc}",
+				f"Failed to write JSON persistence file {str(self._path)!r}: {exc}",
 				backend="json",
-				path=self._path,
+				path=str(self._path),
 				) from exc
 
 
@@ -128,37 +129,37 @@ class SQLitePersistence(Persistence):
 	that rewriting the whole JSON file on every save gets wasteful.
 	"""
 
-	def __init__(self, path: str = "usage.db") -> None:
-		self._path = path
+	def __init__(self, path: Path | str = "usage.db") -> None:
+		self._path: Path = Path(path)
 		self._lock = threading.Lock()
 		try:
-			with sqlite3.connect(self._path) as conn:
+			with sqlite3.connect(str(self._path)) as conn:
 				conn.execute(
 					"CREATE TABLE IF NOT EXISTS daily_usage ("
 					"date TEXT PRIMARY KEY, payload TEXT NOT NULL)",
 					)
 		except sqlite3.Error as exc:
 			raise PersistenceError(
-				f"Failed to initialize SQLite persistence database {self._path!r}: {exc}",
+				f"Failed to initialize SQLite persistence database {str(self._path)!r}: {exc}",
 				backend="sqlite",
-				path=self._path,
+				path=str(self._path),
 				) from exc
 
 	def load_all(self) -> dict[str, dict]:
 		try:
-			with self._lock, sqlite3.connect(self._path) as conn:
+			with self._lock, sqlite3.connect(str(self._path)) as conn:
 				rows = conn.execute("SELECT date, payload FROM daily_usage").fetchall()
 				return {date: json.loads(payload) for date, payload in rows}
 		except (sqlite3.Error, json.JSONDecodeError) as exc:
 			raise PersistenceError(
-				f"Failed to load SQLite persistence database {self._path!r}: {exc}",
+				f"Failed to load SQLite persistence database {str(self._path)!r}: {exc}",
 				backend="sqlite",
-				path=self._path,
+				path=str(self._path),
 				) from exc
 
 	def save_day(self, date: str, payload: dict) -> None:
 		try:
-			with self._lock, sqlite3.connect(self._path) as conn:
+			with self._lock, sqlite3.connect(str(self._path)) as conn:
 				conn.execute(
 					"INSERT INTO daily_usage (date, payload) VALUES (?, ?) "
 					"ON CONFLICT(date) DO UPDATE SET payload = excluded.payload",
@@ -168,12 +169,12 @@ class SQLitePersistence(Persistence):
 			raise PersistenceError(
 				f"Failed to save SQLite persistence day {date!r}: {exc}",
 				backend="sqlite",
-				path=self._path,
+				path=str(self._path),
 				) from exc
 
 	def save_all(self, days: dict[str, dict]) -> None:
 		try:
-			with self._lock, sqlite3.connect(self._path) as conn:
+			with self._lock, sqlite3.connect(str(self._path)) as conn:
 				conn.executemany(
 					"INSERT INTO daily_usage (date, payload) VALUES (?, ?) "
 					"ON CONFLICT(date) DO UPDATE SET payload = excluded.payload",
@@ -181,7 +182,7 @@ class SQLitePersistence(Persistence):
 					)
 		except (sqlite3.Error, TypeError) as exc:
 			raise PersistenceError(
-				f"Failed to save SQLite persistence database {self._path!r}: {exc}",
+				f"Failed to save SQLite persistence database {str(self._path)!r}: {exc}",
 				backend="sqlite",
-				path=self._path,
+				path=str(self._path),
 				) from exc

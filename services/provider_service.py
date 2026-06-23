@@ -121,10 +121,10 @@ class GroqService:
 			) -> None:
 		"""
 		persistence: optional PersistenceService used for all three trackers.
-			When None and POOLGATE_DATA_DIR is set, separate per-tracker JSON
-			files are auto-created inside that directory so data survives restarts
-			without any explicit configuration.  Pass an explicit PersistenceService
-			to override the auto-detected location.
+			When None, per-tracker JSON files are auto-created under the data
+			directory defined in config.paths so data survives restarts without
+			any explicit configuration.  Pass an explicit PersistenceService to
+			override the auto-detected location.
 		"""
 		self._config = config or GroqConfig.from_env()
 		self._debug = debug_mode or self._config.debug_mode

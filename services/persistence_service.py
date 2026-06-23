@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import json
-import os
 import threading
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Protocol
 
 from tracking.persistence import JSONPersistence, Persistence, SQLitePersistence
@@ -25,11 +25,11 @@ class PersistenceService:
         self._backend = backend or JSONPersistence()
 
     @classmethod
-    def json(cls, path: str) -> PersistenceService:
+    def json(cls, path: Path | str) -> PersistenceService:
         return cls(JSONPersistence(path))
 
     @classmethod
-    def sqlite(cls, path: str) -> PersistenceService:
+    def sqlite(cls, path: Path | str) -> PersistenceService:
         return cls(SQLitePersistence(path))
 
     def load_tracker(self, tracker: PersistableTracker) -> dict[str, dict]:
@@ -61,14 +61,14 @@ class RequestJournal:
     Thread-safe.  Writes are unbuffered so entries survive crashes.
     """
 
-    def __init__(self, dir_path: str) -> None:
-        self._dir = dir_path
+    def __init__(self, dir_path: Path) -> None:
+        self._dir: Path = dir_path
         self._lock = threading.Lock()
-        os.makedirs(dir_path, exist_ok=True)
+        dir_path.mkdir(parents=True, exist_ok=True)
 
-    def _current_path(self) -> str:
+    def _current_path(self) -> Path:
         date_str = datetime.now(tz=timezone.utc).strftime("%Y-%m-%d")
-        return os.path.join(self._dir, f"{date_str}.jsonl")
+        return self._dir / f"{date_str}.jsonl"
 
     def append(self, record: dict[str, Any]) -> None:
         """Write one JSON line.  Silently drops on I/O error to never block callers."""
