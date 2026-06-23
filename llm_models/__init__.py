@@ -30,11 +30,11 @@ from llm_models.llama_3_3_70b_versatile import Llama3370BVersatileConfig
 from llm_models.meta_llama_4_scout import Llama4Scout17BConfig
 from llm_models.meta_llama_prompt_guard_22m import LlamaPromptGuard222MConfig
 from llm_models.meta_llama_prompt_guard_86m import LlamaPromptGuard286MConfig
-from llm_models.openai_gpt_oss_20b import GptOss20BConfig
 from llm_models.openai_gpt_oss_120b import GptOss120BConfig
+from llm_models.openai_gpt_oss_20b import GptOss20BConfig
 from llm_models.openai_gpt_oss_safeguard_20b import GptOssSafeguard20BConfig
-from llm_models.qwen3_6_27b import Qwen3627BConfig
 from llm_models.qwen3_32b import Qwen332BConfig
+from llm_models.qwen3_6_27b import Qwen3627BConfig
 from llm_models.whisper_large_v3 import WhisperLargeV3Config
 from llm_models.whisper_large_v3_turbo import WhisperLargeV3TurboConfig
 

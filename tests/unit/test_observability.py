@@ -4,11 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from core.logger_manager import (
-	ObservabilityLogger,
-	RequestContext,
-	mask_key,
-	)
+from core.logger_manager import (mask_key, ObservabilityLogger, RequestContext)
 
 
 class TestMaskKey:

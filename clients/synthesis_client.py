@@ -22,7 +22,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 
-from clients.base import BaseGroqClient, _new_rid
+from clients.base import _new_rid, BaseGroqClient
 from clients.capabilities import SynthesisCapability
 
 

@@ -4,9 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
-from core.path_config import PathConfig, _DEFAULT_BASE_DIR
+from core.path_config import _DEFAULT_BASE_DIR, PathConfig
 
 
 class TestPathConfigDisabled:

@@ -18,14 +18,10 @@ import functools
 import threading
 from typing import TYPE_CHECKING
 
+from core.logger_manager import ObservabilityLogger
 from exceptions.keys import NoAvailableAPIKeyError
 from key_manager.key_pool import APIKeyState
-from core.logger_manager import ObservabilityLogger
-from schedulers.scheduling_strategies import (
-	BaseSchedulingStrategy,
-	SchedulingStrategyType,
-	create_strategy,
-	)
+from schedulers.scheduling_strategies import (BaseSchedulingStrategy, create_strategy, SchedulingStrategyType)
 from schemas.runtime import APIKeyStatus
 
 

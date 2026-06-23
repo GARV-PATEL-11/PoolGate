@@ -13,9 +13,9 @@ from __future__ import annotations
 
 import pytest
 
-from exceptions.keys import NoAvailableAPIKeyError
 from core.logger_manager import LoggerManager
 from core.path_config import PathConfig
+from exceptions.keys import NoAvailableAPIKeyError
 from schedulers.request_scheduler import RequestScheduler
 from schemas.runtime import APIKeyStatus
 

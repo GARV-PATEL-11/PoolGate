@@ -9,8 +9,8 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 
-from exceptions.configuration import ConfigurationError, EnvironmentParseError
 from core.path_config import PathConfig
+from exceptions.configuration import ConfigurationError, EnvironmentParseError
 
 
 @dataclass

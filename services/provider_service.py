@@ -8,7 +8,6 @@ import time
 import uuid
 from collections.abc import AsyncGenerator, Awaitable, Callable, Generator
 from typing import (
-	TYPE_CHECKING,
 	Any,
 	BinaryIO,
 	TypeVar,
@@ -16,7 +15,7 @@ from typing import (
 
 from pydantic import BaseModel, ValidationError
 
-from clients import (
+from clients import (assert_capability,
 	ChatClient,
 	ModerationClient,
 	ModerationResult,
@@ -26,17 +25,15 @@ from clients import (
 	ToolClient,
 	TranscriptionClient,
 	TranscriptionResult,
-	assert_capability,
-	)
+)
 from core.config import GroqConfig
-from core.logger_manager import LoggerManager
+from core.logger_manager import LoggerManager, RequestContext
 from exceptions.configuration import EmptyKeyPoolError
 from exceptions.keys import APIKeyDisabledError, NoAvailableAPIKeyError
 from exceptions.output import SessionExpiredError, StructuredOutputError
 from exceptions.request import MissingPromptError
 from exceptions.response import RetryExhaustedError
 from key_manager.key_pool import APIKeyState
-from core.logger_manager import RequestContext
 from retry import _is_auth_error, _is_rate_limit
 from schedulers.request_scheduler import RequestScheduler
 from schemas.runtime import (
@@ -48,10 +45,9 @@ from schemas.runtime import (
 	TokenUsage,
 	)
 from services.health_service import HealthService
+from services.persistence_service import PersistenceService, RequestJournal
 from services.session_service import SessionManager
 from tracking.manager import TrackingManager
-
-from services.persistence_service import PersistenceService, RequestJournal
 
 
 T = TypeVar("T", bound=BaseModel)

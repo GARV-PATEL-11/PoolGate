@@ -30,14 +30,7 @@ import time
 from abc import ABC
 from typing import Any
 
-from clients.base import (
-	BaseGroqClient,
-	_choice_text,
-	_first_choice,
-	_new_rid,
-	_parse_finish_reason,
-	_parse_usage,
-	)
+from clients.base import (_choice_text, _first_choice, _new_rid, _parse_finish_reason, _parse_usage, BaseGroqClient)
 from clients.capabilities import ToolCallingCapability
 from schemas.runtime import GroqResponse, RequestConfig
 

@@ -54,7 +54,7 @@ PROMPTS = [
 	"What is cybersecurity?",
 	"Name 5 animals that live in the ocean.",
 	"What is the Pythagorean theorem?",
-]
+	]
 
 
 def main() -> None:

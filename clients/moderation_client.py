@@ -34,7 +34,7 @@ from __future__ import annotations
 import time
 from dataclasses import dataclass
 
-from clients.base import BaseGroqClient, _choice_text, _first_choice, _new_rid, _parse_usage
+from clients.base import _choice_text, _first_choice, _new_rid, _parse_usage, BaseGroqClient
 from clients.capabilities import ModerationCapability
 from schemas.runtime import RequestConfig, TokenUsage
 

@@ -27,14 +27,7 @@ from __future__ import annotations
 import time
 from typing import Any
 
-from clients.base import (
-	BaseGroqClient,
-	_choice_text,
-	_first_choice,
-	_new_rid,
-	_parse_finish_reason,
-	_parse_usage,
-	)
+from clients.base import (_choice_text, _first_choice, _new_rid, _parse_finish_reason, _parse_usage, BaseGroqClient)
 from clients.capabilities import StructuredGenerationCapability
 from schemas.runtime import GroqResponse, RequestConfig
 

@@ -15,21 +15,21 @@ from schemas.runtime import RuntimeChatMessage
 
 
 def test_valid_roles_are_accepted():
-    for role in ("system", "user", "assistant", "tool"):
-        msg = RuntimeChatMessage(role=role, content="hello")
-        assert msg.role == role
+	for role in ("system", "user", "assistant", "tool"):
+		msg = RuntimeChatMessage(role=role, content="hello")
+		assert msg.role == role
 
 
 def test_invalid_role_raises_invalid_message_role_error():
-    with pytest.raises(InvalidMessageRoleError) as exc_info:
-        RuntimeChatMessage(role="narrator", content="hello")
-    assert exc_info.value.role == "narrator"
-    assert "system" in exc_info.value.allowed_roles
+	with pytest.raises(InvalidMessageRoleError) as exc_info:
+		RuntimeChatMessage(role="narrator", content="hello")
+	assert exc_info.value.role == "narrator"
+	assert "system" in exc_info.value.allowed_roles
 
 
 def test_invalid_role_error_message_lists_allowed_roles():
-    with pytest.raises(InvalidMessageRoleError) as exc_info:
-        RuntimeChatMessage(role="bogus", content="x")
-    message = str(exc_info.value)
-    for role in ("system", "user", "assistant", "tool"):
-        assert role in message
+	with pytest.raises(InvalidMessageRoleError) as exc_info:
+		RuntimeChatMessage(role="bogus", content="x")
+	message = str(exc_info.value)
+	for role in ("system", "user", "assistant", "tool"):
+		assert role in message

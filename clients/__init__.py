@@ -49,13 +49,7 @@ from clients.capabilities import (
 	)
 from clients.chat_client import ChatClient
 from clients.moderation_client import ModerationClient, ModerationResult
-from clients.registry import (
-	MODEL_CAPABILITIES,
-	Capability,
-	CapabilityError,
-	assert_capability,
-	models_for,
-	)
+from clients.registry import (assert_capability, Capability, CapabilityError, MODEL_CAPABILITIES, models_for)
 from clients.structured_client import StructuredClient
 from clients.synthesis_client import SynthesisClient, SynthesisResult
 from clients.tool_client import ToolClient

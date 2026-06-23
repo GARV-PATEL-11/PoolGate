@@ -62,7 +62,7 @@ PROMPTS = [
 	"What is cybersecurity?",
 	"Name 5 animals that live in the ocean.",
 	"What is the Pythagorean theorem?",
-]
+	]
 
 
 def safe_invoke(service: GroqService, prompt: str) -> str | None:

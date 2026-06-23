@@ -9,6 +9,7 @@ Environment (.env or shell):
 from __future__ import annotations
 
 import sys
+
 from dotenv import load_dotenv
 
 from exceptions import GroqServiceError

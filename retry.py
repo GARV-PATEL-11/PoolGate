@@ -12,15 +12,14 @@ from collections.abc import Awaitable, Callable
 from enum import Enum
 from typing import Any, TypeVar
 
-from tenacity import (
-	AsyncRetrying,
+from tenacity import (AsyncRetrying,
+	retry_if_exception,
 	RetryCallState,
 	Retrying,
-	retry_if_exception,
 	stop_after_attempt,
 	wait_exponential,
 	wait_random,
-	)
+)
 
 from exceptions.keys import APIKeyDisabledError, NoAvailableAPIKeyError
 from exceptions.output import StructuredOutputError

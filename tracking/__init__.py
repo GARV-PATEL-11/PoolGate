@@ -2,7 +2,7 @@
 
 from tracking.account_tracker import AccountTracker
 from tracking.manager import TrackingManager
-from tracking.models import DailyBucket, TokenUsage, today_str
+from tracking.models import DailyBucket, today_str, TokenUsage
 from tracking.persistence import JSONPersistence, Persistence, SQLitePersistence
 from tracking.quota_tracker import QuotaTracker
 from tracking.request_tracker import RequestTracker

@@ -49,7 +49,7 @@ usage.py, and model_info.py for the reasoning and a note on consolidating later.
 """
 
 from schemas.chat import ChatMessage, ChatRequest, ChatResponse, ToolCall, ToolDefinition
-from schemas.common import FinishReason, Metadata, Region, UTCTimestamp, utc_now, utcnow
+from schemas.common import FinishReason, Metadata, Region, utc_now, utcnow, UTCTimestamp
 from schemas.context import RequestContext, RequestOptions, RequestType, Session
 from schemas.envelope import (
 	CapabilityRequest,

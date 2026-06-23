@@ -28,16 +28,15 @@ from __future__ import annotations
 import time
 from collections.abc import AsyncGenerator, Callable, Generator
 
-from clients.base import (
-	BaseGroqClient,
-	_choice_text,
+from clients.base import (_choice_text,
 	_chunk_delta_text,
 	_first_choice,
 	_new_rid,
 	_parse_chunk_usage,
 	_parse_finish_reason,
 	_parse_usage,
-	)
+	BaseGroqClient,
+)
 from clients.capabilities import TextGenerationCapability
 from schemas.runtime import GroqResponse, RequestConfig, TokenUsage
 

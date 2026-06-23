@@ -35,7 +35,7 @@ TOOLS: list[dict] = [{"type": "function",
 	},
 	]
 
-PROMPTS: list[str] = [# Basic tool calls
+PROMPTS: list[str] = [  # Basic tool calls
 	"What's the weather in Tokyo?", "What's the weather in Paris?", "Tell me the current weather in London.",
 	"How's the weather in New York today?", "Weather in Berlin?",
 

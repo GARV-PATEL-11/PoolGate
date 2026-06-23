@@ -28,7 +28,7 @@ import time
 from dataclasses import dataclass
 from typing import BinaryIO
 
-from clients.base import BaseGroqClient, _new_rid
+from clients.base import _new_rid, BaseGroqClient
 from clients.capabilities import TranscriptionCapability
 
 
