@@ -32,15 +32,8 @@ MANIFEST
 *.manifest
 *.spec
 
-# Generated audio files
-poolgate_data/audio/
-
-# Log files
-poolgate_data/logs/
-
-# Request traces and tracking data
-poolgate_data/requests/
-poolgate_data/tracking/
+# PoolGate runtime data directory (all generated content)
+poolgate_data/
 
 # Installer logs
 pip-log.txt
