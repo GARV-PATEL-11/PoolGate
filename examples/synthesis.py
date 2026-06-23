@@ -25,11 +25,7 @@ VOICES = ["tara", "leah", "jess", "leo", "dan", "mia", "zac", "zoe"]
 
 
 def main() -> None:
-    text = (
-        sys.argv[1]
-        if len(sys.argv) > 1
-        else "Hello! This is a test of PoolGate's text-to-speech synthesis."
-    )
+    text = sys.argv[1] if len(sys.argv) > 1 else "Hello! This is a test of PoolGate's text-to-speech synthesis."
     voice = sys.argv[2] if len(sys.argv) > 2 else "tara"
 
     if voice not in VOICES:
@@ -55,9 +51,7 @@ def main() -> None:
         f.write(result.audio)
 
     print(f"Audio saved: {output_path}  ({len(result.audio):,} bytes)")
-    print(
-        f"Voice: {result.voice}  Model: {result.model}  Latency: {result.latency:.3f}s"
-    )
+    print(f"Voice: {result.voice}  Model: {result.model}  Latency: {result.latency:.3f}s")
 
     service.flush_tracking()
     if service._config.paths.base_dir:

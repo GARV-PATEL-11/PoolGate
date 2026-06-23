@@ -75,9 +75,7 @@ def safe_invoke(service: GroqService, prompt: str) -> str | None:
         return None
 
     except APIKeyDisabledError as e:
-        print(
-            f"[APIKeyDisabledError] Key {e.key_id!r} is disabled (HTTP {e.status_code})"
-        )
+        print(f"[APIKeyDisabledError] Key {e.key_id!r} is disabled (HTTP {e.status_code})")
         return None
 
     except RateLimitExceededError as e:

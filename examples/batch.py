@@ -68,8 +68,7 @@ async def main() -> None:
     )
 
     print(
-        f"Batch complete: {summary.succeeded}/{summary.total} succeeded  "
-        f"({summary.failed} failed)",
+        f"Batch complete: {summary.succeeded}/{summary.total} succeeded  " f"({summary.failed} failed)",
     )
     print(f"Total latency: {summary.total_latency:.3f}s")
     print()
@@ -84,9 +83,7 @@ async def main() -> None:
 
     service.flush_tracking()
     if service._config.paths.base_dir:
-        print(
-            f"\nAll {summary.total} requests journaled to {service._config.paths.base_dir}/requests/"
-        )
+        print(f"\nAll {summary.total} requests journaled to {service._config.paths.base_dir}/requests/")
 
 
 if __name__ == "__main__":

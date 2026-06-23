@@ -24,9 +24,7 @@ def main() -> None:
         system="You are a helpful assistant. Answer concisely.",
     )
     print(f"Answer:  {response.text}")
-    print(
-        f"Tokens:  {response.usage.prompt_tokens} in, {response.usage.completion_tokens} out"
-    )
+    print(f"Tokens:  {response.usage.prompt_tokens} in, {response.usage.completion_tokens} out")
     print(f"Latency: {response.latency:.3f}s  Model: {response.model}")
 
     service.flush_tracking()

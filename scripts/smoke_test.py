@@ -30,17 +30,13 @@ def main() -> int:
     try:
         from services.provider_service import GroqService
     except Exception as exc:
-        print(
-            f"FAIL: could not import services.provider_service: {type(exc).__name__}: {exc}"
-        )
+        print(f"FAIL: could not import services.provider_service: {type(exc).__name__}: {exc}")
         return 1
 
     try:
         service = GroqService()
     except Exception as exc:
-        print(
-            f"FAIL: GroqService() raised on construction: {type(exc).__name__}: {exc}"
-        )
+        print(f"FAIL: GroqService() raised on construction: {type(exc).__name__}: {exc}")
         return 1
 
     required_methods = (

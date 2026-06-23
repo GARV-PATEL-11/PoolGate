@@ -88,9 +88,7 @@ def main() -> None:
     print("\nKey pool status:")
     for key in service.get_key_pool_status():
         masked = key.get("masked_key", key.get("key_id", "?"))
-        print(
-            f"  {masked}: status={key.get('status')} rpm={key.get('requests_per_minute', 0)}"
-        )
+        print(f"  {masked}: status={key.get('status')} rpm={key.get('requests_per_minute', 0)}")
 
     service.flush_tracking()
     if service._config.paths.base_dir:

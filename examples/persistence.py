@@ -88,8 +88,7 @@ def main() -> None:
     )
     print(f"Response: {response.text[:80]}...")
     print(
-        f"Tokens:   {response.usage.prompt_tokens} in, "
-        f"{response.usage.completion_tokens} out",
+        f"Tokens:   {response.usage.prompt_tokens} in, " f"{response.usage.completion_tokens} out",
     )
     print()
 
