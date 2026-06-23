@@ -194,3 +194,170 @@ class TestStreamUsesRealSdkShape:
 
 		assert captured["usage"].prompt_tokens == 10
 		assert captured["usage"].completion_tokens == 20
+
+
+class TestAsyncStream:
+
+	@pytest.mark.asyncio
+	async def test_async_stream_yields_text_deltas(self, chat_client, monkeypatch):
+		chunk1 = MagicMock(x_groq=None)
+		chunk1.choices = [MagicMock(delta=MagicMock(content="He"))]
+		chunk2 = MagicMock(x_groq=None)
+		chunk2.choices = [MagicMock(delta=MagicMock(content="llo"))]
+
+		async def _async_stream_cm():
+			for c in [chunk1, chunk2]:
+				yield c
+
+		mock_stream = MagicMock()
+		mock_stream.__aenter__ = AsyncMock(return_value=_async_stream_cm())
+		mock_stream.__aexit__ = AsyncMock(return_value=False)
+
+		mock_sdk = AsyncMock()
+		mock_sdk.chat.completions.create = AsyncMock(return_value=mock_stream)
+		monkeypatch.setattr(chat_client, "_async_sdk", lambda api_key: mock_sdk)
+
+		chunks = []
+		async for chunk in chat_client.async_stream(
+			api_key="gsk_test",
+			model="llama-3.3-70b-versatile",
+			messages=[{"role": "user", "content": "hi"}],
+			config=RequestConfig(),
+			session_id="s1",
+			api_key_id="key_0",
+		):
+			chunks.append(chunk)
+
+		assert chunks == ["He", "llo"]
+
+	@pytest.mark.asyncio
+	async def test_async_stream_calls_create_with_stream_true(self, chat_client, monkeypatch):
+		async def _empty():
+			return
+			yield  # make it a generator
+
+		mock_stream = MagicMock()
+		mock_stream.__aenter__ = AsyncMock(return_value=_empty())
+		mock_stream.__aexit__ = AsyncMock(return_value=False)
+
+		mock_sdk = AsyncMock()
+		mock_sdk.chat.completions.create = AsyncMock(return_value=mock_stream)
+		monkeypatch.setattr(chat_client, "_async_sdk", lambda api_key: mock_sdk)
+
+		async for _ in chat_client.async_stream(
+			api_key="gsk_test",
+			model="llama-3.3-70b-versatile",
+			messages=[{"role": "user", "content": "hi"}],
+			config=RequestConfig(),
+			session_id="s1",
+			api_key_id="key_0",
+		):
+			pass
+
+		call_kwargs = mock_sdk.chat.completions.create.call_args.kwargs
+		assert call_kwargs["stream"] is True
+
+	@pytest.mark.asyncio
+	async def test_async_invoke_propagates_sdk_errors(self, chat_client, monkeypatch):
+		mock_sdk = AsyncMock()
+		mock_sdk.chat.completions.create = AsyncMock(side_effect=RuntimeError("async failure"))
+		monkeypatch.setattr(chat_client, "_async_sdk", lambda api_key: mock_sdk)
+		monkeypatch.setattr(chat_client, "_handle_sdk_error", lambda exc, rid, key_id: None)
+
+		with pytest.raises(RuntimeError):
+			await chat_client.async_invoke(
+				api_key="gsk_test",
+				model="llama-3.3-70b-versatile",
+				messages=[{"role": "user", "content": "hi"}],
+				config=RequestConfig(),
+				session_id="s1",
+				api_key_id="key_0",
+			)
+
+
+class TestStreamErrorPath:
+
+	def test_stream_error_during_iteration_propagates(self, chat_client, monkeypatch):
+		def _bad_iter():
+			raise RuntimeError("stream failed mid-iteration")
+			yield  # make it a generator
+
+		mock_stream = MagicMock()
+		mock_stream.__enter__ = MagicMock(return_value=_bad_iter())
+		mock_stream.__exit__ = MagicMock(return_value=False)
+
+		mock_sdk = MagicMock()
+		mock_sdk.chat.completions.create.return_value = mock_stream
+		monkeypatch.setattr(chat_client, "_sync_sdk", lambda api_key: mock_sdk)
+		monkeypatch.setattr(chat_client, "_handle_sdk_error", lambda exc, rid, key_id: None)
+
+		with pytest.raises(RuntimeError):
+			list(
+				chat_client.stream(
+					api_key="gsk_test",
+					model="llama-3.3-70b-versatile",
+					messages=[{"role": "user", "content": "hi"}],
+					config=RequestConfig(),
+					session_id="s1",
+					api_key_id="key_0",
+				)
+			)
+
+	@pytest.mark.asyncio
+	async def test_async_stream_invokes_on_usage_callback(self, chat_client, monkeypatch):
+		final_chunk = MagicMock()
+		final_chunk.choices = [MagicMock(delta=MagicMock(content=""))]
+		final_chunk.x_groq = MagicMock()
+		final_chunk.x_groq.usage = MagicMock(prompt_tokens=10, completion_tokens=20)
+
+		async def _stream_cm():
+			yield final_chunk
+
+		mock_stream = MagicMock()
+		mock_stream.__aenter__ = AsyncMock(return_value=_stream_cm())
+		mock_stream.__aexit__ = AsyncMock(return_value=False)
+
+		mock_sdk = AsyncMock()
+		mock_sdk.chat.completions.create = AsyncMock(return_value=mock_stream)
+		monkeypatch.setattr(chat_client, "_async_sdk", lambda api_key: mock_sdk)
+
+		captured = {}
+		async for _ in chat_client.async_stream(
+			api_key="gsk_test",
+			model="llama-3.3-70b-versatile",
+			messages=[{"role": "user", "content": "hi"}],
+			config=RequestConfig(),
+			session_id="s1",
+			api_key_id="key_0",
+			on_usage=lambda u: captured.setdefault("usage", u),
+		):
+			pass
+
+		assert captured["usage"].prompt_tokens == 10
+		assert captured["usage"].completion_tokens == 20
+
+	@pytest.mark.asyncio
+	async def test_async_stream_error_propagates(self, chat_client, monkeypatch):
+		async def _bad_gen():
+			raise RuntimeError("async stream failed")
+			yield  # make it an async generator
+
+		mock_stream = MagicMock()
+		mock_stream.__aenter__ = AsyncMock(return_value=_bad_gen())
+		mock_stream.__aexit__ = AsyncMock(return_value=False)
+
+		mock_sdk = AsyncMock()
+		mock_sdk.chat.completions.create = AsyncMock(return_value=mock_stream)
+		monkeypatch.setattr(chat_client, "_async_sdk", lambda api_key: mock_sdk)
+		monkeypatch.setattr(chat_client, "_handle_sdk_error", lambda exc, rid, key_id: None)
+
+		with pytest.raises(RuntimeError):
+			async for _ in chat_client.async_stream(
+				api_key="gsk_test",
+				model="llama-3.3-70b-versatile",
+				messages=[{"role": "user", "content": "hi"}],
+				config=RequestConfig(),
+				session_id="s1",
+				api_key_id="key_0",
+			):
+				pass

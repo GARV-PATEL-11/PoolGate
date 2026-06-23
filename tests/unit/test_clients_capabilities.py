@@ -166,3 +166,149 @@ class TestConcreteClientMethods:
 	def test_synthesis_client_has_all_synthesis_methods(self):
 		for method in ("synthesize", "async_synthesize"):
 			assert callable(getattr(SynthesisClient, method)), f"SynthesisClient.{method} missing"
+
+
+# ---------------------------------------------------------------------------
+# Abstract method stub bodies are reachable via super()
+# ---------------------------------------------------------------------------
+
+class TestAbstractMethodBodies:
+	"""
+	The `...` body of each abstract method is an executable statement covered
+	only when a concrete subclass calls super().  These tests verify that
+	calling the stubs via super() returns None (the implicit return when the
+	body is `...`) and does not raise, documenting the stub contract.
+	"""
+
+	def test_text_generation_invoke_stub_returns_none(self):
+		class _Stub(TextGenerationCapability):
+			def invoke(self, *a, **kw): return super().invoke(*a, **kw)
+			async def async_invoke(self, *a, **kw): return await super().async_invoke(*a, **kw)
+			def stream(self, *a, **kw): return super().stream(*a, **kw)
+			async def async_stream(self, *a, **kw): return await super().async_stream(*a, **kw)
+
+		stub = _Stub()
+		assert stub.invoke() is None
+
+	def test_text_generation_stream_stub_returns_none(self):
+		class _Stub(TextGenerationCapability):
+			def invoke(self, *a, **kw): return super().invoke(*a, **kw)
+			async def async_invoke(self, *a, **kw): return await super().async_invoke(*a, **kw)
+			def stream(self, *a, **kw): return super().stream(*a, **kw)
+			async def async_stream(self, *a, **kw): return await super().async_stream(*a, **kw)
+
+		stub = _Stub()
+		assert stub.stream() is None
+
+	@pytest.mark.asyncio
+	async def test_text_generation_async_invoke_stub_returns_none(self):
+		class _Stub(TextGenerationCapability):
+			def invoke(self, *a, **kw): return super().invoke(*a, **kw)
+			async def async_invoke(self, *a, **kw): return await super().async_invoke(*a, **kw)
+			def stream(self, *a, **kw): return super().stream(*a, **kw)
+			async def async_stream(self, *a, **kw): return await super().async_stream(*a, **kw)
+
+		stub = _Stub()
+		assert await stub.async_invoke() is None
+
+	@pytest.mark.asyncio
+	async def test_text_generation_async_stream_stub_returns_none(self):
+		class _Stub(TextGenerationCapability):
+			def invoke(self, *a, **kw): return super().invoke(*a, **kw)
+			async def async_invoke(self, *a, **kw): return await super().async_invoke(*a, **kw)
+			def stream(self, *a, **kw): return super().stream(*a, **kw)
+			async def async_stream(self, *a, **kw): return await super().async_stream(*a, **kw)
+
+		stub = _Stub()
+		assert await stub.async_stream() is None
+
+	def test_structured_generation_stubs_return_none(self):
+		class _Stub(StructuredGenerationCapability):
+			def invoke_structured(self, *a, **kw): return super().invoke_structured(*a, **kw)
+			async def async_invoke_structured(self, *a, **kw): return await super().async_invoke_structured(*a, **kw)
+
+		stub = _Stub()
+		assert stub.invoke_structured() is None
+
+	@pytest.mark.asyncio
+	async def test_structured_generation_async_stub_returns_none(self):
+		class _Stub(StructuredGenerationCapability):
+			def invoke_structured(self, *a, **kw): return super().invoke_structured(*a, **kw)
+			async def async_invoke_structured(self, *a, **kw): return await super().async_invoke_structured(*a, **kw)
+
+		stub = _Stub()
+		assert await stub.async_invoke_structured() is None
+
+	def test_tool_calling_stubs_return_none(self):
+		class _Stub(ToolCallingCapability):
+			def invoke_tools(self, *a, **kw): return super().invoke_tools(*a, **kw)
+			async def async_invoke_tools(self, *a, **kw): return await super().async_invoke_tools(*a, **kw)
+
+		stub = _Stub()
+		assert stub.invoke_tools() is None
+
+	@pytest.mark.asyncio
+	async def test_tool_calling_async_stub_returns_none(self):
+		class _Stub(ToolCallingCapability):
+			def invoke_tools(self, *a, **kw): return super().invoke_tools(*a, **kw)
+			async def async_invoke_tools(self, *a, **kw): return await super().async_invoke_tools(*a, **kw)
+
+		stub = _Stub()
+		assert await stub.async_invoke_tools() is None
+
+	def test_moderation_stubs_return_none(self):
+		class _Stub(ModerationCapability):
+			def moderate(self, *a, **kw): return super().moderate(*a, **kw)
+			async def async_moderate(self, *a, **kw): return await super().async_moderate(*a, **kw)
+
+		stub = _Stub()
+		assert stub.moderate() is None
+
+	@pytest.mark.asyncio
+	async def test_moderation_async_stub_returns_none(self):
+		class _Stub(ModerationCapability):
+			def moderate(self, *a, **kw): return super().moderate(*a, **kw)
+			async def async_moderate(self, *a, **kw): return await super().async_moderate(*a, **kw)
+
+		stub = _Stub()
+		assert await stub.async_moderate() is None
+
+	def test_transcription_stubs_return_none(self):
+		class _Stub(TranscriptionCapability):
+			def transcribe(self, *a, **kw): return super().transcribe(*a, **kw)
+			async def async_transcribe(self, *a, **kw): return await super().async_transcribe(*a, **kw)
+			def translate(self, *a, **kw): return super().translate(*a, **kw)
+			async def async_translate(self, *a, **kw): return await super().async_translate(*a, **kw)
+
+		stub = _Stub()
+		assert stub.transcribe() is None
+		assert stub.translate() is None
+
+	@pytest.mark.asyncio
+	async def test_transcription_async_stubs_return_none(self):
+		class _Stub(TranscriptionCapability):
+			def transcribe(self, *a, **kw): return super().transcribe(*a, **kw)
+			async def async_transcribe(self, *a, **kw): return await super().async_transcribe(*a, **kw)
+			def translate(self, *a, **kw): return super().translate(*a, **kw)
+			async def async_translate(self, *a, **kw): return await super().async_translate(*a, **kw)
+
+		stub = _Stub()
+		assert await stub.async_transcribe() is None
+		assert await stub.async_translate() is None
+
+	def test_synthesis_stubs_return_none(self):
+		class _Stub(SynthesisCapability):
+			def synthesize(self, *a, **kw): return super().synthesize(*a, **kw)
+			async def async_synthesize(self, *a, **kw): return await super().async_synthesize(*a, **kw)
+
+		stub = _Stub()
+		assert stub.synthesize() is None
+
+	@pytest.mark.asyncio
+	async def test_synthesis_async_stub_returns_none(self):
+		class _Stub(SynthesisCapability):
+			def synthesize(self, *a, **kw): return super().synthesize(*a, **kw)
+			async def async_synthesize(self, *a, **kw): return await super().async_synthesize(*a, **kw)
+
+		stub = _Stub()
+		assert await stub.async_synthesize() is None

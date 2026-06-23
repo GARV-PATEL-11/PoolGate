@@ -65,6 +65,41 @@ class TestJSONPersistence:
 		assert "2026-06-01" in result
 		assert "2026-06-02" in result
 
+	def test_write_oserror_raises_persistence_error(self, tmp_path, monkeypatch):
+		import tempfile as _tempfile
+
+		path = str(tmp_path / "usage.json")
+		backend = JSONPersistence(path)
+
+		def _bad_mkstemp(*args, **kwargs):
+			raise OSError("disk full")
+
+		monkeypatch.setattr(_tempfile, "mkstemp", _bad_mkstemp)
+		with pytest.raises(PersistenceError) as exc_info:
+			backend.save_day("2026-06-01", {"requests": 5})
+		assert exc_info.value.backend == "json"
+
+	def test_load_returns_empty_when_file_deleted_after_init(self, tmp_path):
+		import os
+		path = str(tmp_path / "usage.json")
+		backend = JSONPersistence(path)
+		os.remove(path)
+		result = backend.load_all()
+		assert result == {}
+
+	def test_write_fdopen_oserror_raises_persistence_error(self, tmp_path, monkeypatch):
+		import os as _os
+		path = str(tmp_path / "usage.json")
+		backend = JSONPersistence(path)
+
+		def _bad_fdopen(*args, **kwargs):
+			raise OSError("write failed mid-file")
+
+		monkeypatch.setattr(_os, "fdopen", _bad_fdopen)
+		with pytest.raises(PersistenceError) as exc_info:
+			backend.save_day("2026-06-01", {"requests": 5})
+		assert exc_info.value.backend == "json"
+
 
 class TestSQLitePersistence:
 
@@ -107,3 +142,54 @@ class TestSQLitePersistence:
 		path = str(tmp_path / "usage.db")
 		SQLitePersistence(path)
 		assert os.path.exists(path)
+
+	def test_init_sqlite_error_raises_persistence_error(self, tmp_path, monkeypatch):
+		import sqlite3 as _sqlite3
+		path = str(tmp_path / "usage.db")
+
+		def _bad_connect(*args, **kwargs):
+			raise _sqlite3.Error("init failure")
+
+		monkeypatch.setattr(_sqlite3, "connect", _bad_connect)
+		with pytest.raises(PersistenceError) as exc_info:
+			SQLitePersistence(path)
+		assert exc_info.value.backend == "sqlite"
+
+	def test_load_all_sqlite_error_raises_persistence_error(self, tmp_path, monkeypatch):
+		import sqlite3 as _sqlite3
+		path = str(tmp_path / "usage.db")
+		backend = SQLitePersistence(path)  # init succeeds with real sqlite3
+
+		def _bad_connect(*args, **kwargs):
+			raise _sqlite3.Error("read failure")
+
+		monkeypatch.setattr(_sqlite3, "connect", _bad_connect)
+		with pytest.raises(PersistenceError) as exc_info:
+			backend.load_all()
+		assert exc_info.value.backend == "sqlite"
+
+	def test_save_day_sqlite_error_raises_persistence_error(self, tmp_path, monkeypatch):
+		import sqlite3 as _sqlite3
+		path = str(tmp_path / "usage.db")
+		backend = SQLitePersistence(path)  # init succeeds
+
+		def _bad_connect(*args, **kwargs):
+			raise _sqlite3.Error("write failure")
+
+		monkeypatch.setattr(_sqlite3, "connect", _bad_connect)
+		with pytest.raises(PersistenceError) as exc_info:
+			backend.save_day("2026-06-01", {"requests": 5})
+		assert exc_info.value.backend == "sqlite"
+
+	def test_save_all_sqlite_error_raises_persistence_error(self, tmp_path, monkeypatch):
+		import sqlite3 as _sqlite3
+		path = str(tmp_path / "usage.db")
+		backend = SQLitePersistence(path)  # init succeeds
+
+		def _bad_connect(*args, **kwargs):
+			raise _sqlite3.Error("bulk write failure")
+
+		monkeypatch.setattr(_sqlite3, "connect", _bad_connect)
+		with pytest.raises(PersistenceError) as exc_info:
+			backend.save_all({"2026-06-01": {"requests": 5}})
+		assert exc_info.value.backend == "sqlite"

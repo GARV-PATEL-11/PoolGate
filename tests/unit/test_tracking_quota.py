@@ -77,6 +77,64 @@ class TestQuotaTracker:
 		assert tracker.get("not-registered") is None
 
 
+class TestQuotaTrackerCheckConsumeRemaining:
+
+	def test_check_quota_returns_true_when_not_exhausted(self):
+		tracker = QuotaTracker()
+		tracker.update("model-x", remaining_rpd=10)
+		assert tracker.check_quota("model-x") is True
+
+	def test_check_quota_returns_false_when_exhausted(self):
+		tracker = QuotaTracker()
+		tracker.update("model-x", remaining_rpd=0)
+		assert tracker.check_quota("model-x") is False
+
+	def test_check_quota_returns_true_for_unknown_model(self):
+		tracker = QuotaTracker()
+		assert tracker.check_quota("unknown-model") is True
+
+	def test_consume_decrements_remaining_rpd(self):
+		tracker = QuotaTracker()
+		tracker.update("model-x", remaining_rpd=10, remaining_tpd=5000)
+		tracker.consume("model-x", requests=3, tokens=100)
+		snap = tracker.get("model-x")
+		assert snap["remaining_rpd"] == 7
+		assert snap["remaining_tpd"] == 4900
+
+	def test_consume_clamps_to_zero(self):
+		tracker = QuotaTracker()
+		tracker.update("model-x", remaining_rpd=1)
+		tracker.consume("model-x", requests=5)
+		snap = tracker.get("model-x")
+		assert snap["remaining_rpd"] == 0
+
+	def test_consume_is_noop_when_no_snapshot(self):
+		tracker = QuotaTracker()
+		tracker.consume("nonexistent", requests=1)
+		assert tracker.get("nonexistent") is None
+
+	def test_consume_skips_none_fields(self):
+		tracker = QuotaTracker()
+		tracker.update("model-x", remaining_rpd=5)
+		tracker.consume("model-x", requests=2, tokens=100)
+		snap = tracker.get("model-x")
+		assert snap["remaining_rpd"] == 3
+		assert snap["remaining_tpd"] is None
+
+	def test_get_remaining_returns_both_fields(self):
+		tracker = QuotaTracker()
+		tracker.update("model-x", remaining_rpd=50, remaining_tpd=10000)
+		result = tracker.get_remaining("model-x")
+		assert result["remaining_rpd"] == 50
+		assert result["remaining_tpd"] == 10000
+
+	def test_get_remaining_returns_none_for_unknown_model(self):
+		tracker = QuotaTracker()
+		result = tracker.get_remaining("unknown-model")
+		assert result["remaining_rpd"] is None
+		assert result["remaining_tpd"] is None
+
+
 class TestParseDuration:
 
 	def test_parses_minutes_and_seconds(self):
