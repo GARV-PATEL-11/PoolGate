@@ -24,48 +24,52 @@ import sys
 
 
 def main() -> int:
-	os.environ.setdefault("TOTAL_GROQ_KEYS", "1")
-	os.environ.setdefault("GROQ_API_KEY_01", "gsk_smoke_test_dummy_key")
+    os.environ.setdefault("TOTAL_GROQ_KEYS", "1")
+    os.environ.setdefault("GROQ_API_KEY_01", "gsk_smoke_test_dummy_key")
 
-	try:
-		from services.provider_service import GroqService
-	except Exception as exc:
-		print(f"FAIL: could not import services.provider_service: {type(exc).__name__}: {exc}")
-		return 1
+    try:
+        from services.provider_service import GroqService
+    except Exception as exc:
+        print(
+            f"FAIL: could not import services.provider_service: {type(exc).__name__}: {exc}"
+        )
+        return 1
 
-	try:
-		service = GroqService()
-	except Exception as exc:
-		print(f"FAIL: GroqService() raised on construction: {type(exc).__name__}: {exc}")
-		return 1
+    try:
+        service = GroqService()
+    except Exception as exc:
+        print(
+            f"FAIL: GroqService() raised on construction: {type(exc).__name__}: {exc}"
+        )
+        return 1
 
-	required_methods = (
-		"invoke",
-		"async_invoke",
-		"chat",
-		"async_chat",
-		"structured",
-		"async_structured",
-		"stream",
-		"async_stream",
-		"batch",
-		"health",
-		"get_key_pool_status",
-		"get_global_stats",
-		)
-	missing = [name for name in required_methods if not hasattr(service, name)]
-	if missing:
-		print(f"FAIL: GroqService is missing expected methods: {missing}")
-		return 1
+    required_methods = (
+        "invoke",
+        "async_invoke",
+        "chat",
+        "async_chat",
+        "structured",
+        "async_structured",
+        "stream",
+        "async_stream",
+        "batch",
+        "health",
+        "get_key_pool_status",
+        "get_global_stats",
+    )
+    missing = [name for name in required_methods if not hasattr(service, name)]
+    if missing:
+        print(f"FAIL: GroqService is missing expected methods: {missing}")
+        return 1
 
-	health = service.health()
-	if health.active_keys < 1:
-		print("FAIL: GroqService constructed but reports zero active keys.")
-		return 1
+    health = service.health()
+    if health.active_keys < 1:
+        print("FAIL: GroqService constructed but reports zero active keys.")
+        return 1
 
-	print("OK: GroqService imports, constructs, and reports a healthy key pool.")
-	return 0
+    print("OK: GroqService imports, constructs, and reports a healthy key pool.")
+    return 0
 
 
 if __name__ == "__main__":
-	sys.exit(main())
+    sys.exit(main())

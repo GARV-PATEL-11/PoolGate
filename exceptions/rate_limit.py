@@ -31,124 +31,124 @@ from exceptions.base import GroqServiceError
 
 
 class RateLimitExceededError(GroqServiceError):
-	"""
-	Raised when a key hits Groq's per-minute request-rate limit (HTTP 429,
-	RPM-class).
+    """
+    Raised when a key hits Groq's per-minute request-rate limit (HTTP 429,
+    RPM-class).
 
-	The retry_after value is parsed from the Retry-After response header
-	when present. The retry machinery uses it to schedule the next attempt
-	and to mark the key as cooling.
+    The retry_after value is parsed from the Retry-After response header
+    when present. The retry machinery uses it to schedule the next attempt
+    and to mark the key as cooling.
 
-	Attributes
-	----------
-	retry_after : seconds to wait before the key is usable again
-							  (None if the header was absent)
-	key_id      : the key that was rate-limited
-	"""
+    Attributes
+    ----------
+    retry_after : seconds to wait before the key is usable again
+                                                      (None if the header was absent)
+    key_id      : the key that was rate-limited
+    """
 
-	def __init__(
-			self,
-			message: str = "Rate limit exceeded across all keys",
-			retry_after: float | None = None,
-			key_id: str | None = None,
-			request_id: str | None = None,
-			) -> None:
-		self.retry_after = retry_after
-		self.key_id = key_id
-		super().__init__(message, request_id)
+    def __init__(
+        self,
+        message: str = "Rate limit exceeded across all keys",
+        retry_after: float | None = None,
+        key_id: str | None = None,
+        request_id: str | None = None,
+    ) -> None:
+        self.retry_after = retry_after
+        self.key_id = key_id
+        super().__init__(message, request_id)
 
 
 class QuotaExceededError(GroqServiceError):
-	"""
-	Raised when a key has exhausted a multi-hour or daily quota (HTTP 429,
-	quota-class).
+    """
+    Raised when a key has exhausted a multi-hour or daily quota (HTTP 429,
+    quota-class).
 
-	Unlike RateLimitExceededError, a quota breach does not recover within
-	seconds — the window is hours. The retry layer must not re-queue the
-	same key; it should mark it EXHAUSTED and rotate to a different key,
-	or surface this error to the user.
+    Unlike RateLimitExceededError, a quota breach does not recover within
+    seconds — the window is hours. The retry layer must not re-queue the
+    same key; it should mark it EXHAUSTED and rotate to a different key,
+    or surface this error to the user.
 
-	This also closes the APIKeyStatus.EXHAUSTED dead-code issue: setting
-	that status should happen when this exception is caught by the key pool.
+    This also closes the APIKeyStatus.EXHAUSTED dead-code issue: setting
+    that status should happen when this exception is caught by the key pool.
 
-	Attributes
-	----------
-	key_id     : the key whose quota is exhausted
-	quota_type : which quota was hit ("daily", "monthly", etc.)
-	resets_at  : ISO-8601 timestamp when the quota resets, if known
-	"""
+    Attributes
+    ----------
+    key_id     : the key whose quota is exhausted
+    quota_type : which quota was hit ("daily", "monthly", etc.)
+    resets_at  : ISO-8601 timestamp when the quota resets, if known
+    """
 
-	def __init__(
-			self,
-			message: str,
-			key_id: str | None = None,
-			quota_type: str = "unknown",
-			resets_at: str | None = None,
-			request_id: str | None = None,
-			) -> None:
-		self.key_id = key_id
-		self.quota_type = quota_type
-		self.resets_at = resets_at
-		super().__init__(message, request_id)
+    def __init__(
+        self,
+        message: str,
+        key_id: str | None = None,
+        quota_type: str = "unknown",
+        resets_at: str | None = None,
+        request_id: str | None = None,
+    ) -> None:
+        self.key_id = key_id
+        self.quota_type = quota_type
+        self.resets_at = resets_at
+        super().__init__(message, request_id)
 
 
 class DailyLimitExceededError(QuotaExceededError):
-	"""
-	Convenience subclass for explicit daily-limit breaches.
+    """
+    Convenience subclass for explicit daily-limit breaches.
 
-	Raised when the response body clearly identifies the limit as a daily
-	cap (as opposed to a monthly or total quota). Callers that need to
-	treat daily exhaustion differently from other quota types can catch
-	this more specific exception.
+    Raised when the response body clearly identifies the limit as a daily
+    cap (as opposed to a monthly or total quota). Callers that need to
+    treat daily exhaustion differently from other quota types can catch
+    this more specific exception.
 
-	"""
+    """
 
-	def __init__(
-			self,
-			message: str,
-			key_id: str | None = None,
-			resets_at: str | None = None,
-			request_id: str | None = None,
-			) -> None:
-		super().__init__(
-			message,
-			key_id=key_id,
-			quota_type="daily",
-			resets_at=resets_at,
-			request_id=request_id,
-			)
+    def __init__(
+        self,
+        message: str,
+        key_id: str | None = None,
+        resets_at: str | None = None,
+        request_id: str | None = None,
+    ) -> None:
+        super().__init__(
+            message,
+            key_id=key_id,
+            quota_type="daily",
+            resets_at=resets_at,
+            request_id=request_id,
+        )
 
 
 class TokenBudgetExceededError(GroqServiceError):
-	"""
-	Raised when a request exceeds a token-throughput limit (TPM, ITPM, or
-	OTPM) — returned as HTTP 429 by Groq but distinct from RPM and quota
-	exhaustion.
+    """
+    Raised when a request exceeds a token-throughput limit (TPM, ITPM, or
+    OTPM) — returned as HTTP 429 by Groq but distinct from RPM and quota
+    exhaustion.
 
-	The model registry already tracks per-model TPM limits
-	(ModelRateLimitConfig), but nothing currently raises a typed error when
-	those limits are breached. This exception closes that gap.
+    The model registry already tracks per-model TPM limits
+    (ModelRateLimitConfig), but nothing currently raises a typed error when
+    those limits are breached. This exception closes that gap.
 
-	Attributes
-	----------
-	key_id      : the key that received the 429
-	budget_type : which token budget was hit: "tpm", "itpm", or "otpm"
-	limit       : the limit value (tokens/minute), if parseable from the response
-	retry_after : seconds until the budget resets (typically < 60)
+    Attributes
+    ----------
+    key_id      : the key that received the 429
+    budget_type : which token budget was hit: "tpm", "itpm", or "otpm"
+    limit       : the limit value (tokens/minute), if parseable from the response
+    retry_after : seconds until the budget resets (typically < 60)
 
-	"""
+    """
 
-	def __init__(
-			self,
-			message: str,
-			key_id: str | None = None,
-			budget_type: str = "tpm",
-			limit: int | None = None,
-			retry_after: float | None = None,
-			request_id: str | None = None,
-			) -> None:
-		self.key_id = key_id
-		self.budget_type = budget_type
-		self.limit = limit
-		self.retry_after = retry_after
-		super().__init__(message, request_id)
+    def __init__(
+        self,
+        message: str,
+        key_id: str | None = None,
+        budget_type: str = "tpm",
+        limit: int | None = None,
+        retry_after: float | None = None,
+        request_id: str | None = None,
+    ) -> None:
+        self.key_id = key_id
+        self.budget_type = budget_type
+        self.limit = limit
+        self.retry_after = retry_after
+        super().__init__(message, request_id)

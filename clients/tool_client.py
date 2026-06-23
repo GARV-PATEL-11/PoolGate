@@ -30,140 +30,147 @@ import time
 from abc import ABC
 from typing import Any
 
-from clients.base import (_choice_text, _first_choice, _new_rid, _parse_finish_reason, _parse_usage, BaseGroqClient)
+from clients.base import (
+    BaseGroqClient,
+    _choice_text,
+    _first_choice,
+    _new_rid,
+    _parse_finish_reason,
+    _parse_usage,
+)
 from clients.capabilities import ToolCallingCapability
 from schemas.runtime import GroqResponse, RequestConfig
 
 
 class ToolClient(BaseGroqClient, ToolCallingCapability, ABC):
-	"""
-	Stateless client for function / tool calling.
+    """
+    Stateless client for function / tool calling.
 
-	tools
-		List of tool definitions following the OpenAI function-calling schema:
-		[{"type": "function", "function": {"name": ..., "description": ...,
-										   "parameters": {...}}}]
+    tools
+            List of tool definitions following the OpenAI function-calling schema:
+            [{"type": "function", "function": {"name": ..., "description": ...,
+                                                                               "parameters": {...}}}]
 
-	tool_choice
-		Controls which tool the model may invoke:
-		  "auto"       — model decides (default)
-		  "none"       — model must not call any tool
-		  "required"   — model must call at least one tool
-		  {"type": "function", "function": {"name": "<name>"}}
-					   — model must call the named tool
-	"""
+    tool_choice
+            Controls which tool the model may invoke:
+              "auto"       — model decides (default)
+              "none"       — model must not call any tool
+              "required"   — model must call at least one tool
+              {"type": "function", "function": {"name": "<name>"}}
+                                       — model must call the named tool
+    """
 
-	# ------------------------------------------------------------------
-	# Sync
-	# ------------------------------------------------------------------
+    # ------------------------------------------------------------------
+    # Sync
+    # ------------------------------------------------------------------
 
-	def invoke_tools(
-			self,
-			api_key: str,
-			model: str,
-			messages: list[dict[str, Any]],
-			config: RequestConfig,
-			session_id: str,
-			api_key_id: str,
-			tools: list[dict[str, Any]],
-			tool_choice: str | dict[str, Any] = "auto",
-			request_id: str | None = None,
-			) -> GroqResponse:
-		"""
-		Blocking tool-calling completion.
+    def invoke_tools(
+        self,
+        api_key: str,
+        model: str,
+        messages: list[dict[str, Any]],
+        config: RequestConfig,
+        session_id: str,
+        api_key_id: str,
+        tools: list[dict[str, Any]],
+        tool_choice: str | dict[str, Any] = "auto",
+        request_id: str | None = None,
+    ) -> GroqResponse:
+        """
+        Blocking tool-calling completion.
 
-		When finish_reason is TOOL_CALLS, inspect raw_response.choices[0]
-		.message.tool_calls for the list of function calls the model wants
-		to make.  Execute them, append the results as tool messages, then
-		call invoke_tools() again to let the model continue.
-		"""
-		rid = _new_rid(request_id)
-		client = self._sync_sdk(api_key)
-		start = time.perf_counter()
+        When finish_reason is TOOL_CALLS, inspect raw_response.choices[0]
+        .message.tool_calls for the list of function calls the model wants
+        to make.  Execute them, append the results as tool messages, then
+        call invoke_tools() again to let the model continue.
+        """
+        rid = _new_rid(request_id)
+        client = self._sync_sdk(api_key)
+        start = time.perf_counter()
 
-		try:
-			completion = client.chat.completions.create(
-				model=model,
-				messages=messages,  # type: ignore[arg-type]
-				temperature=config.temperature,
-				top_p=config.top_p,
-				max_tokens=config.max_tokens,
-				seed=config.seed,
-				stop=config.stop,
-				timeout=config.timeout,
-				tools=tools,  # type: ignore[arg-type]
-				tool_choice=tool_choice,  # type: ignore[arg-type]
-				stream=False,
-				)
-		except Exception as exc:
-			self._handle_sdk_error(exc, rid, api_key_id)
+        try:
+            completion = client.chat.completions.create(
+                model=model,
+                messages=messages,  # type: ignore[arg-type]
+                temperature=config.temperature,
+                top_p=config.top_p,
+                max_tokens=config.max_tokens,
+                seed=config.seed,
+                stop=config.stop,
+                timeout=config.timeout,
+                tools=tools,  # type: ignore[arg-type]
+                tool_choice=tool_choice,  # type: ignore[arg-type]
+                stream=False,
+            )
+        except Exception as exc:
+            self._handle_sdk_error(exc, rid, api_key_id)
 
-		latency = time.perf_counter() - start
-		choice = _first_choice(completion, rid)
-		return GroqResponse(
-			text=_choice_text(choice, rid),
-			model=model,
-			usage=_parse_usage(completion),
-			latency=latency,
-			session_id=session_id,
-			request_id=rid,
-			api_key_id=api_key_id,
-			finish_reason=_parse_finish_reason(getattr(choice, "finish_reason", None)),
-			raw_response=completion,
-			)
+        latency = time.perf_counter() - start
+        choice = _first_choice(completion, rid)
+        return GroqResponse(
+            text=_choice_text(choice, rid),
+            model=model,
+            usage=_parse_usage(completion),
+            latency=latency,
+            session_id=session_id,
+            request_id=rid,
+            api_key_id=api_key_id,
+            finish_reason=_parse_finish_reason(getattr(choice, "finish_reason", None)),
+            raw_response=completion,
+        )
 
-	# ------------------------------------------------------------------
-	# Async
-	# ------------------------------------------------------------------
+    # ------------------------------------------------------------------
+    # Async
+    # ------------------------------------------------------------------
 
-	async def async_invoke_tools(
-			self,
-			api_key: str,
-			model: str,
-			messages: list[dict[str, Any]],
-			config: RequestConfig,
-			session_id: str,
-			api_key_id: str,
-			tools: list[dict[str, Any]],
-			tool_choice: str | dict[str, Any] = "auto",
-			request_id: str | None = None,
-			) -> GroqResponse:
-		"""
-		Async tool-calling completion.
+    async def async_invoke_tools(
+        self,
+        api_key: str,
+        model: str,
+        messages: list[dict[str, Any]],
+        config: RequestConfig,
+        session_id: str,
+        api_key_id: str,
+        tools: list[dict[str, Any]],
+        tool_choice: str | dict[str, Any] = "auto",
+        request_id: str | None = None,
+    ) -> GroqResponse:
+        """
+        Async tool-calling completion.
 
-		Identical contract to invoke_tools() — uses the native async Groq SDK.
-		"""
-		rid = _new_rid(request_id)
-		client = self._async_sdk(api_key)
-		start = time.perf_counter()
+        Identical contract to invoke_tools() — uses the native async Groq SDK.
+        """
+        rid = _new_rid(request_id)
+        client = self._async_sdk(api_key)
+        start = time.perf_counter()
 
-		try:
-			completion = await client.chat.completions.create(
-				model=model,
-				messages=messages,  # type: ignore[arg-type]
-				temperature=config.temperature,
-				top_p=config.top_p,
-				max_tokens=config.max_tokens,
-				seed=config.seed,
-				stop=config.stop,
-				timeout=config.timeout,
-				tools=tools,  # type: ignore[arg-type]
-				tool_choice=tool_choice,  # type: ignore[arg-type]
-				stream=False,
-				)
-		except Exception as exc:
-			self._handle_sdk_error(exc, rid, api_key_id)
+        try:
+            completion = await client.chat.completions.create(
+                model=model,
+                messages=messages,  # type: ignore[arg-type]
+                temperature=config.temperature,
+                top_p=config.top_p,
+                max_tokens=config.max_tokens,
+                seed=config.seed,
+                stop=config.stop,
+                timeout=config.timeout,
+                tools=tools,  # type: ignore[arg-type]
+                tool_choice=tool_choice,  # type: ignore[arg-type]
+                stream=False,
+            )
+        except Exception as exc:
+            self._handle_sdk_error(exc, rid, api_key_id)
 
-		latency = time.perf_counter() - start
-		choice = _first_choice(completion, rid)
-		return GroqResponse(
-			text=_choice_text(choice, rid),
-			model=model,
-			usage=_parse_usage(completion),
-			latency=latency,
-			session_id=session_id,
-			request_id=rid,
-			api_key_id=api_key_id,
-			finish_reason=_parse_finish_reason(getattr(choice, "finish_reason", None)),
-			raw_response=completion,
-			)
+        latency = time.perf_counter() - start
+        choice = _first_choice(completion, rid)
+        return GroqResponse(
+            text=_choice_text(choice, rid),
+            model=model,
+            usage=_parse_usage(completion),
+            latency=latency,
+            session_id=session_id,
+            request_id=rid,
+            api_key_id=api_key_id,
+            finish_reason=_parse_finish_reason(getattr(choice, "finish_reason", None)),
+            raw_response=completion,
+        )

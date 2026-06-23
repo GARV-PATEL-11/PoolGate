@@ -10,29 +10,29 @@ from llm_models.base import ModelRateLimitConfig
 
 @dataclass
 class GptOss120BConfig(ModelRateLimitConfig):
-	"""Free Plan rate limits for ``openai/gpt-oss-120b``.
+    """Free Plan rate limits for ``openai/gpt-oss-120b``.
 
-	Env-var overrides (all optional; class defaults apply when unset):
-			GROQ_MODEL_GPT_OSS_120B_REQUESTS_PER_MINUTE – requests / minute  (default: 30)
-			GROQ_MODEL_GPT_OSS_120B_REQUESTS_PER_DAY    – requests / day         (default: 1,000)
-			GROQ_MODEL_GPT_OSS_120B_TOKENS_PER_MINUTE   – tokens    / minute   (default: 8,000)
-			GROQ_MODEL_GPT_OSS_120B_TOKENS_PER_DAY      – tokens    / day         (default: 200,000)
-			GROQ_MODEL_GPT_OSS_120B_INPUT_TOKENS_PER_MINUTE  – input tokens  / minute  (default: None — only if split limits apply)
-			GROQ_MODEL_GPT_OSS_120B_OUTPUT_TOKENS_PER_MINUTE – output tokens / minute  (default: None — only if split limits apply)
-	"""
+    Env-var overrides (all optional; class defaults apply when unset):
+                    GROQ_MODEL_GPT_OSS_120B_REQUESTS_PER_MINUTE – requests / minute  (default: 30)
+                    GROQ_MODEL_GPT_OSS_120B_REQUESTS_PER_DAY    – requests / day         (default: 1,000)
+                    GROQ_MODEL_GPT_OSS_120B_TOKENS_PER_MINUTE   – tokens    / minute   (default: 8,000)
+                    GROQ_MODEL_GPT_OSS_120B_TOKENS_PER_DAY      – tokens    / day         (default: 200,000)
+                    GROQ_MODEL_GPT_OSS_120B_INPUT_TOKENS_PER_MINUTE  – input tokens  / minute  (default: None — only if split limits apply)
+                    GROQ_MODEL_GPT_OSS_120B_OUTPUT_TOKENS_PER_MINUTE – output tokens / minute  (default: None — only if split limits apply)
+    """
 
-	# ------------------------------------------------------------------ identity
-	model_id: str = "openai/gpt-oss-120b"
-	plan: str = "free"
+    # ------------------------------------------------------------------ identity
+    model_id: str = "openai/gpt-oss-120b"
+    plan: str = "free"
 
-	# ------------------------------------------------------------------ rate limits
-	requests_per_minute: int | None = 30  # requests per minute
-	requests_per_day: int | None = 1_000  # requests per day
-	tokens_per_minute: int | None = 8_000  # tokens per minute
-	tokens_per_day: int | None = 200_000  # tokens per day
+    # ------------------------------------------------------------------ rate limits
+    requests_per_minute: int | None = 30  # requests per minute
+    requests_per_day: int | None = 1_000  # requests per day
+    tokens_per_minute: int | None = 8_000  # tokens per minute
+    tokens_per_day: int | None = 200_000  # tokens per day
 
-	# ------------------------------------------------------------------ env-var prefix
-	_ENV_PREFIX: ClassVar[str] = "GROQ_MODEL_GPT_OSS_120B"
+    # ------------------------------------------------------------------ env-var prefix
+    _ENV_PREFIX: ClassVar[str] = "GROQ_MODEL_GPT_OSS_120B"
 
-	context_window: int | None = 131_072
-	max_output_tokens: int | None = 8_192
+    context_window: int | None = 131_072
+    max_output_tokens: int | None = 8_192

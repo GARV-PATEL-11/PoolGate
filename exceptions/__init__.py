@@ -65,81 +65,80 @@ GroqServiceError
 
 from exceptions.base import GroqServiceError
 from exceptions.configuration import (
-	ConfigurationError,
-	EmptyKeyPoolError,
-	EnvironmentParseError,
-	InvalidRateLimitConfigError,
-	)
+    ConfigurationError,
+    EmptyKeyPoolError,
+    EnvironmentParseError,
+    InvalidRateLimitConfigError,
+)
 from exceptions.keys import (
-	APIKeyDisabledError,
-	APIKeyError,
-	NoAvailableAPIKeyError,
-	)
+    APIKeyDisabledError,
+    APIKeyError,
+    NoAvailableAPIKeyError,
+)
 from exceptions.output import (
-	SessionError,
-	SessionExpiredError,
-	StructuredOutputError,
-	)
+    SessionError,
+    SessionExpiredError,
+    StructuredOutputError,
+)
 from exceptions.persistence import PersistenceError
 from exceptions.rate_limit import (
-	DailyLimitExceededError,
-	QuotaExceededError,
-	RateLimitExceededError,
-	TokenBudgetExceededError,
-	)
+    DailyLimitExceededError,
+    QuotaExceededError,
+    RateLimitExceededError,
+    TokenBudgetExceededError,
+)
 from exceptions.request import (
-	CapabilityError,
-	InvalidMessageRoleError,
-	InvalidRequestError,
-	MissingPromptError,
-	UnknownModelError,
-	UnknownSchedulingStrategyError,
-	)
+    CapabilityError,
+    InvalidMessageRoleError,
+    InvalidRequestError,
+    MissingPromptError,
+    UnknownModelError,
+    UnknownSchedulingStrategyError,
+)
 from exceptions.response import (
-	InvalidResponseError,
-	RetryExhaustedError,
-	)
+    InvalidResponseError,
+    RetryExhaustedError,
+)
 from exceptions.transport import (
-	TransportError,
-	UpstreamServiceError,
-	UpstreamTimeoutError,
-	)
-
+    TransportError,
+    UpstreamServiceError,
+    UpstreamTimeoutError,
+)
 
 __all__ = [
-	# Root
-	"GroqServiceError",
-	# Configuration (startup)
-	"ConfigurationError",
-	"EnvironmentParseError",
-	"InvalidRateLimitConfigError",
-	"EmptyKeyPoolError",
-	# Request / input validation
-	"InvalidRequestError",
-	"MissingPromptError",
-	"InvalidMessageRoleError",
-	"UnknownModelError",
-	"UnknownSchedulingStrategyError",
-	"CapabilityError",
-	# Key lifecycle
-	"APIKeyError",
-	"NoAvailableAPIKeyError",
-	"APIKeyDisabledError",
-	# Rate limiting (429-family)
-	"RateLimitExceededError",
-	"QuotaExceededError",
-	"DailyLimitExceededError",
-	"TokenBudgetExceededError",
-	# Transport / network
-	"TransportError",
-	"UpstreamTimeoutError",
-	"UpstreamServiceError",
-	# Response parsing
-	"InvalidResponseError",
-	"RetryExhaustedError",
-	# Output / session
-	"StructuredOutputError",
-	"SessionError",
-	"SessionExpiredError",
-	"PersistenceError",
-	]
+    # Root
+    "GroqServiceError",
+    # Configuration (startup)
+    "ConfigurationError",
+    "EnvironmentParseError",
+    "InvalidRateLimitConfigError",
+    "EmptyKeyPoolError",
+    # Request / input validation
+    "InvalidRequestError",
+    "MissingPromptError",
+    "InvalidMessageRoleError",
+    "UnknownModelError",
+    "UnknownSchedulingStrategyError",
+    "CapabilityError",
+    # Key lifecycle
+    "APIKeyError",
+    "NoAvailableAPIKeyError",
+    "APIKeyDisabledError",
+    # Rate limiting (429-family)
+    "RateLimitExceededError",
+    "QuotaExceededError",
+    "DailyLimitExceededError",
+    "TokenBudgetExceededError",
+    # Transport / network
+    "TransportError",
+    "UpstreamTimeoutError",
+    "UpstreamServiceError",
+    # Response parsing
+    "InvalidResponseError",
+    "RetryExhaustedError",
+    # Output / session
+    "StructuredOutputError",
+    "SessionError",
+    "SessionExpiredError",
+    "PersistenceError",
+]

@@ -48,101 +48,106 @@ usage.py, and model_info.py for the reasoning and a note on consolidating later.
   PoolGateRequest, PoolGateResponse, CapabilityRequest, CapabilityResponse
 """
 
-from schemas.chat import ChatMessage, ChatRequest, ChatResponse, ToolCall, ToolDefinition
+from schemas.chat import (
+    ChatMessage,
+    ChatRequest,
+    ChatResponse,
+    ToolCall,
+    ToolDefinition,
+)
 from schemas.common import FinishReason, Metadata, Region, utc_now, utcnow, UTCTimestamp
 from schemas.context import RequestContext, RequestOptions, RequestType, Session
 from schemas.envelope import (
-	CapabilityRequest,
-	CapabilityResponse,
-	PoolGateRequest,
-	PoolGateResponse,
-	PoolGetRequest,
-	PoolGetResponse,
-	)
+    CapabilityRequest,
+    CapabilityResponse,
+    PoolGateRequest,
+    PoolGateResponse,
+    PoolGetRequest,
+    PoolGetResponse,
+)
 from schemas.keys import AccountIdentity, APIKey, APIKeyIdentity
 from schemas.model_info import Capability, CapabilitySet, ModelCapabilities, ModelInfo
 from schemas.moderation import ModerationRequest, ModerationResponse
 from schemas.ops import ErrorResponse, HealthStatus, RetryPolicy
 from schemas.runtime import (
-	APIKeyStatus,
-	BatchResult,
-	BatchSummary,
-	GroqResponse,
-	RequestConfig,
-	RuntimeChatMessage,
-	)
+    APIKeyStatus,
+    BatchResult,
+    BatchSummary,
+    GroqResponse,
+    RequestConfig,
+    RuntimeChatMessage,
+)
 from schemas.structured import StructuredRequest, StructuredResponse
 from schemas.synthesis import SynthesisRequest, SynthesisResponse
 from schemas.transcription import (
-	TranscriptionRequest,
-	TranscriptionResponse,
-	TranslationRequest,
-	TranslationResponse,
-	)
+    TranscriptionRequest,
+    TranscriptionResponse,
+    TranslationRequest,
+    TranslationResponse,
+)
 from schemas.usage import QuotaStatus, RequestUsage, TokenUsage
 
-
 __all__ = [
-	# Common
-	"Metadata",
-	"FinishReason",
-	"Region",
-	"UTCTimestamp",
-	"utcnow",
-	"utc_now",
-	# Model registry
-	"ModelInfo",
-	"ModelCapabilities",
-	"CapabilitySet",
-	"Capability",
-	"APIKeyStatus",
-	# Identity
-	"APIKey",
-	"APIKeyIdentity",
-	"AccountIdentity",
-	# Chat + tools
-	"ChatMessage",
-	"RuntimeChatMessage",
-	"ChatRequest",
-	"ChatResponse",
-	"ToolDefinition",
-	"ToolCall",
-	# Structured
-	"StructuredRequest",
-	"StructuredResponse",
-	# Moderation
-	"ModerationRequest",
-	"ModerationResponse",
-	# Transcription
-	"TranscriptionRequest",
-	"TranscriptionResponse",
-	"TranslationRequest",
-	"TranslationResponse",
-	# Synthesis
-	"SynthesisRequest",
-	"SynthesisResponse",
-	# Request lifecycle
-	"RequestContext",
-	"RequestOptions",
-	"Session",
-	"RequestType",
-	# Usage / quota
-	"TokenUsage",
-	"RequestConfig",
-	"GroqResponse",
-	"BatchResult",
-	"BatchSummary",
-	"RequestUsage",
-	"QuotaStatus",
-	# Ops
-	"HealthStatus",
-	"RetryPolicy",
-	"ErrorResponse",
-	# Envelope
-	"PoolGateRequest",
-	"PoolGateResponse",
-	"PoolGetRequest",
-	"PoolGetResponse",
-	"CapabilityRequest",
-	"CapabilityResponse",
-	]
+    # Common
+    "Metadata",
+    "FinishReason",
+    "Region",
+    "UTCTimestamp",
+    "utcnow",
+    "utc_now",
+    # Model registry
+    "ModelInfo",
+    "ModelCapabilities",
+    "CapabilitySet",
+    "Capability",
+    "APIKeyStatus",
+    # Identity
+    "APIKey",
+    "APIKeyIdentity",
+    "AccountIdentity",
+    # Chat + tools
+    "ChatMessage",
+    "RuntimeChatMessage",
+    "ChatRequest",
+    "ChatResponse",
+    "ToolDefinition",
+    "ToolCall",
+    # Structured
+    "StructuredRequest",
+    "StructuredResponse",
+    # Moderation
+    "ModerationRequest",
+    "ModerationResponse",
+    # Transcription
+    "TranscriptionRequest",
+    "TranscriptionResponse",
+    "TranslationRequest",
+    "TranslationResponse",
+    # Synthesis
+    "SynthesisRequest",
+    "SynthesisResponse",
+    # Request lifecycle
+    "RequestContext",
+    "RequestOptions",
+    "Session",
+    "RequestType",
+    # Usage / quota
+    "TokenUsage",
+    "RequestConfig",
+    "GroqResponse",
+    "BatchResult",
+    "BatchSummary",
+    "RequestUsage",
+    "QuotaStatus",
+    # Ops
+    "HealthStatus",
+    "RetryPolicy",
+    "ErrorResponse",
+    # Envelope
+    "PoolGateRequest",
+    "PoolGateResponse",
+    "PoolGetRequest",
+    "PoolGetResponse",
+    "CapabilityRequest",
+    "CapabilityResponse",
+]

@@ -22,25 +22,25 @@ from pydantic import BaseModel, Field
 
 
 def utcnow() -> datetime:
-	"""Timezone-aware current UTC timestamp. Used as the default_factory across schemas/."""
-	return datetime.now(timezone.utc)
+    """Timezone-aware current UTC timestamp. Used as the default_factory across schemas/."""
+    return datetime.now(timezone.utc)
 
 
 def utc_now() -> datetime:
-	"""Spec-compatible alias for utcnow()."""
-	return utcnow()
+    """Spec-compatible alias for utcnow()."""
+    return utcnow()
 
 
 UTCTimestamp = datetime
 
 
 class Region(str, Enum):
-	"""Deployment/account region hint."""
+    """Deployment/account region hint."""
 
-	GLOBAL = "global"
-	US = "us"
-	EU = "eu"
-	APAC = "apac"
+    GLOBAL = "global"
+    US = "us"
+    EU = "eu"
+    APAC = "apac"
 
 
 # Intentional duplication: schemas/runtime.py also defines FinishReason.
@@ -48,29 +48,29 @@ class Region(str, Enum):
 # This copy is used by the public envelope schemas (envelope.py, structured.py, etc.).
 # Both must stay in sync if new values are added.
 class FinishReason(str, Enum):
-	STOP = "stop"
-	LENGTH = "length"
-	TOOL_CALLS = "tool_calls"
-	CONTENT_FILTER = "content_filter"
-	UNKNOWN = "unknown"
+    STOP = "stop"
+    LENGTH = "length"
+    TOOL_CALLS = "tool_calls"
+    CONTENT_FILTER = "content_filter"
+    UNKNOWN = "unknown"
 
 
 class Metadata(BaseModel):
-	"""
-	Generic, extensible metadata envelope embeddable in any request or response.
+    """
+    Generic, extensible metadata envelope embeddable in any request or response.
 
-	`tags` is for short, indexable string labels (customer name, environment,
-	feature flag) you might want to filter or group by later. `extra` is an
-	escape hatch for anything else that doesn't deserve a first-class field.
+    `tags` is for short, indexable string labels (customer name, environment,
+    feature flag) you might want to filter or group by later. `extra` is an
+    escape hatch for anything else that doesn't deserve a first-class field.
 
-	Embed this as `metadata: Metadata | None = None` on any schema that needs
-	free-form annotation without polluting its core fields.
-	"""
+    Embed this as `metadata: Metadata | None = None` on any schema that needs
+    free-form annotation without polluting its core fields.
+    """
 
-	tags: dict[str, str] = Field(default_factory=dict)
-	extra: dict[str, Any] = Field(default_factory=dict)
-	source: str | None = Field(
-		default=None,
-		description="Originating component/service that attached this metadata, e.g. 'service.py'.",
-		)
-	created_at: datetime = Field(default_factory=utcnow)
+    tags: dict[str, str] = Field(default_factory=dict)
+    extra: dict[str, Any] = Field(default_factory=dict)
+    source: str | None = Field(
+        default=None,
+        description="Originating component/service that attached this metadata, e.g. 'service.py'.",
+    )
+    created_at: datetime = Field(default_factory=utcnow)

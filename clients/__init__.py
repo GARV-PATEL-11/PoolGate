@@ -40,47 +40,52 @@ considered private and should not be imported directly by application code.
 
 from clients.base import BaseGroqClient
 from clients.capabilities import (
-	ModerationCapability,
-	StructuredGenerationCapability,
-	SynthesisCapability,
-	TextGenerationCapability,
-	ToolCallingCapability,
-	TranscriptionCapability,
-	)
+    ModerationCapability,
+    StructuredGenerationCapability,
+    SynthesisCapability,
+    TextGenerationCapability,
+    ToolCallingCapability,
+    TranscriptionCapability,
+)
 from clients.chat_client import ChatClient
 from clients.moderation_client import ModerationClient, ModerationResult
-from clients.registry import (assert_capability, Capability, CapabilityError, MODEL_CAPABILITIES, models_for)
+from clients.registry import (
+    assert_capability,
+    Capability,
+    CapabilityError,
+    MODEL_CAPABILITIES,
+    models_for,
+)
 from clients.structured_client import StructuredClient
 from clients.synthesis_client import SynthesisClient, SynthesisResult
 from clients.tool_client import ToolClient
 from clients.transcription_client import TranscriptionClient, TranscriptionResult
 
-
 __all__ = [
-	# ── Concrete clients ──────────────────────────────────────────────
-	"ChatClient",
-	"StructuredClient",
-	"ToolClient",
-	"ModerationClient",
-	"TranscriptionClient",
-	"SynthesisClient",
-	# ── Capability ABCs ───────────────────────────────────────────────
-	"TextGenerationCapability",
-	"StructuredGenerationCapability",
-	"ToolCallingCapability",
-	"ModerationCapability",
-	"TranscriptionCapability",
-	"SynthesisCapability",
-	# ── Result models ─────────────────────────────────────────────────
-	"ModerationResult",
-	"TranscriptionResult",
-	"SynthesisResult",
-	# ── Registry ──────────────────────────────────────────────────────
-	"MODEL_CAPABILITIES",
-	"Capability",
-	"CapabilityError",
-	"assert_capability",
-	"models_for",
-	# ── Base ──────────────────────────────────────────────────────────
-	"BaseGroqClient",
-	]
+    # ── Concrete clients ──────────────────────────────────────────────
+    "ChatClient",
+    "StructuredClient",
+    "ToolClient",
+    "ModerationClient",
+    "TranscriptionClient",
+    "SynthesisClient",
+    # ── Capability ABCs ───────────────────────────────────────────────
+    "TextGenerationCapability",
+    "StructuredGenerationCapability",
+    "ToolCallingCapability",
+    "ModerationCapability",
+    "TranscriptionCapability",
+    "SynthesisCapability",
+    # ── Result models ─────────────────────────────────────────────────
+    "ModerationResult",
+    "TranscriptionResult",
+    "SynthesisResult",
+    # ── Registry ──────────────────────────────────────────────────────
+    "MODEL_CAPABILITIES",
+    "Capability",
+    "CapabilityError",
+    "assert_capability",
+    "models_for",
+    # ── Base ──────────────────────────────────────────────────────────
+    "BaseGroqClient",
+]
