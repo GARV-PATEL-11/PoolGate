@@ -20,7 +20,7 @@ def key_pool() -> KeyPool:
 
 @pytest.fixture
 def groq_config(monkeypatch) -> GroqConfig:
-	monkeypatch.setenv("TOTAL_GROQ_KEYS", "3")
+	monkeypatch.setenv("TOTAL_GROQ_KEYS", "2")
 	monkeypatch.setenv("GROQ_API_KEY_01", "gsk_test_1")
 	monkeypatch.setenv("GROQ_API_KEY_02", "gsk_test_2")
 
