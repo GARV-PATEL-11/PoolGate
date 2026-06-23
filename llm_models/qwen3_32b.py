@@ -13,12 +13,12 @@ class Qwen332BConfig(ModelRateLimitConfig):
 	"""Free Plan rate limits for ``qwen/qwen3-32b``.
 
 	Env-var overrides (all optional; class defaults apply when unset):
-			GROQ_MODEL_QWEN3_32B_RPM   – requests  / minute  (default: 60)
-			GROQ_MODEL_QWEN3_32B_RPD   – requests  / day     (default: 1,000)
-			GROQ_MODEL_QWEN3_32B_TPM   – tokens    / minute  (default: 6,000)
-			GROQ_MODEL_QWEN3_32B_TPD   – tokens    / day     (default: 500,000)
-			GROQ_MODEL_QWEN3_32B_ITPM  – in-tok    / minute  (default: None — only if split limits apply)
-			GROQ_MODEL_QWEN3_32B_OTPM  – out-tok   / minute  (default: None — only if split limits apply)
+			GROQ_MODEL_QWEN3_32B_REQUESTS_PER_MINUTE – requests / minute  (default: 60)
+			GROQ_MODEL_QWEN3_32B_REQUESTS_PER_DAY    – requests / day         (default: 1,000)
+			GROQ_MODEL_QWEN3_32B_TOKENS_PER_MINUTE   – tokens    / minute   (default: 6,000)
+			GROQ_MODEL_QWEN3_32B_TOKENS_PER_DAY      – tokens    / day         (default: 500,000)
+			GROQ_MODEL_QWEN3_32B_INPUT_TOKENS_PER_MINUTE  – input tokens  / minute  (default: None — only if split limits apply)
+			GROQ_MODEL_QWEN3_32B_OUTPUT_TOKENS_PER_MINUTE – output tokens / minute  (default: None — only if split limits apply)
 	"""
 
 	# ------------------------------------------------------------------ identity

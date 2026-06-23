@@ -13,12 +13,12 @@ class Llama318BInstantConfig(ModelRateLimitConfig):
 	"""Free Plan rate limits for ``llama-3.1-8b-instant``.
 
 	Env-var overrides (all optional; class defaults apply when unset):
-			GROQ_MODEL_LLAMA_31_8B_INSTANT_RPM   – requests  / minute  (default: 30)
-			GROQ_MODEL_LLAMA_31_8B_INSTANT_RPD   – requests  / day     (default: 14,400)
-			GROQ_MODEL_LLAMA_31_8B_INSTANT_TPM   – tokens    / minute  (default: 6,000)
-			GROQ_MODEL_LLAMA_31_8B_INSTANT_TPD   – tokens    / day     (default: 500,000)
-			GROQ_MODEL_LLAMA_31_8B_INSTANT_ITPM  – in-tok    / minute  (default: None — only if split limits apply)
-			GROQ_MODEL_LLAMA_31_8B_INSTANT_OTPM  – out-tok   / minute  (default: None — only if split limits apply)
+			GROQ_MODEL_LLAMA_31_8B_INSTANT_REQUESTS_PER_MINUTE – requests / minute  (default: 30)
+			GROQ_MODEL_LLAMA_31_8B_INSTANT_REQUESTS_PER_DAY    – requests / day         (default: 14,400)
+			GROQ_MODEL_LLAMA_31_8B_INSTANT_TOKENS_PER_MINUTE   – tokens    / minute   (default: 6,000)
+			GROQ_MODEL_LLAMA_31_8B_INSTANT_TOKENS_PER_DAY      – tokens    / day         (default: 500,000)
+			GROQ_MODEL_LLAMA_31_8B_INSTANT_INPUT_TOKENS_PER_MINUTE  – input tokens  / minute  (default: None — only if split limits apply)
+			GROQ_MODEL_LLAMA_31_8B_INSTANT_OUTPUT_TOKENS_PER_MINUTE – output tokens / minute  (default: None — only if split limits apply)
 	"""
 
 	# ------------------------------------------------------------------ identity

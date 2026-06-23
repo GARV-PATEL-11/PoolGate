@@ -13,12 +13,12 @@ class Llama4Scout17BConfig(ModelRateLimitConfig):
 	"""Free Plan rate limits for ``meta-llama/llama-4-scout-17b-16e-instruct``.
 
 	Env-var overrides (all optional; class defaults apply when unset):
-			GROQ_MODEL_LLAMA4_SCOUT_17B_RPM   – requests  / minute  (default: 30)
-			GROQ_MODEL_LLAMA4_SCOUT_17B_RPD   – requests  / day     (default: 1,000)
-			GROQ_MODEL_LLAMA4_SCOUT_17B_TPM   – tokens    / minute  (default: 30,000)
-			GROQ_MODEL_LLAMA4_SCOUT_17B_TPD   – tokens    / day     (default: 500,000)
-			GROQ_MODEL_LLAMA4_SCOUT_17B_ITPM  – in-tok    / minute  (default: None — only if split limits apply)
-			GROQ_MODEL_LLAMA4_SCOUT_17B_OTPM  – out-tok   / minute  (default: None — only if split limits apply)
+			GROQ_MODEL_LLAMA4_SCOUT_17B_REQUESTS_PER_MINUTE – requests / minute  (default: 30)
+			GROQ_MODEL_LLAMA4_SCOUT_17B_REQUESTS_PER_DAY    – requests / day         (default: 1,000)
+			GROQ_MODEL_LLAMA4_SCOUT_17B_TOKENS_PER_MINUTE   – tokens    / minute   (default: 30,000)
+			GROQ_MODEL_LLAMA4_SCOUT_17B_TOKENS_PER_DAY      – tokens    / day         (default: 500,000)
+			GROQ_MODEL_LLAMA4_SCOUT_17B_INPUT_TOKENS_PER_MINUTE  – input tokens  / minute  (default: None — only if split limits apply)
+			GROQ_MODEL_LLAMA4_SCOUT_17B_OUTPUT_TOKENS_PER_MINUTE – output tokens / minute  (default: None — only if split limits apply)
 	"""
 
 	# ------------------------------------------------------------------ identity

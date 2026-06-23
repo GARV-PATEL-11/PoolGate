@@ -13,12 +13,12 @@ class OrpheusArabicSaudiConfig(ModelRateLimitConfig):
 	"""Free Plan rate limits for ``canopylabs/orpheus-arabic-saudi``.
 
 	Env-var overrides (all optional; class defaults apply when unset):
-			GROQ_MODEL_ORPHEUS_ARABIC_SAUDI_RPM   – requests  / minute  (default: 10)
-			GROQ_MODEL_ORPHEUS_ARABIC_SAUDI_RPD   – requests  / day     (default: 100)
-			GROQ_MODEL_ORPHEUS_ARABIC_SAUDI_TPM   – tokens    / minute  (default: 1,200)
-			GROQ_MODEL_ORPHEUS_ARABIC_SAUDI_TPD   – tokens    / day     (default: 3,600)
-			GROQ_MODEL_ORPHEUS_ARABIC_SAUDI_ITPM  – in-tok    / minute  (default: None — only if split limits apply)
-			GROQ_MODEL_ORPHEUS_ARABIC_SAUDI_OTPM  – out-tok   / minute  (default: None — only if split limits apply)
+			GROQ_MODEL_ORPHEUS_ARABIC_SAUDI_REQUESTS_PER_MINUTE – requests / minute  (default: 10)
+			GROQ_MODEL_ORPHEUS_ARABIC_SAUDI_REQUESTS_PER_DAY    – requests / day         (default: 100)
+			GROQ_MODEL_ORPHEUS_ARABIC_SAUDI_TOKENS_PER_MINUTE   – tokens    / minute   (default: 1,200)
+			GROQ_MODEL_ORPHEUS_ARABIC_SAUDI_TOKENS_PER_DAY      – tokens    / day         (default: 3,600)
+			GROQ_MODEL_ORPHEUS_ARABIC_SAUDI_INPUT_TOKENS_PER_MINUTE  – input tokens  / minute  (default: None — only if split limits apply)
+			GROQ_MODEL_ORPHEUS_ARABIC_SAUDI_OUTPUT_TOKENS_PER_MINUTE – output tokens / minute  (default: None — only if split limits apply)
 	"""
 
 	# ------------------------------------------------------------------ identity

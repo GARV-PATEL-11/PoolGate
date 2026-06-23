@@ -13,12 +13,12 @@ class LlamaPromptGuard222MConfig(ModelRateLimitConfig):
 	"""Free Plan rate limits for ``meta-llama/llama-prompt-guard-2-22m``.
 
 	Env-var overrides (all optional; class defaults apply when unset):
-			GROQ_MODEL_PROMPT_GUARD_22M_RPM   – requests  / minute  (default: 30)
-			GROQ_MODEL_PROMPT_GUARD_22M_RPD   – requests  / day     (default: 14,400)
-			GROQ_MODEL_PROMPT_GUARD_22M_TPM   – tokens    / minute  (default: 15,000)
-			GROQ_MODEL_PROMPT_GUARD_22M_TPD   – tokens    / day     (default: 500,000)
-			GROQ_MODEL_PROMPT_GUARD_22M_ITPM  – in-tok    / minute  (default: None — only if split limits apply)
-			GROQ_MODEL_PROMPT_GUARD_22M_OTPM  – out-tok   / minute  (default: None — only if split limits apply)
+			GROQ_MODEL_PROMPT_GUARD_22M_REQUESTS_PER_MINUTE – requests / minute  (default: 30)
+			GROQ_MODEL_PROMPT_GUARD_22M_REQUESTS_PER_DAY    – requests / day         (default: 14,400)
+			GROQ_MODEL_PROMPT_GUARD_22M_TOKENS_PER_MINUTE   – tokens    / minute   (default: 15,000)
+			GROQ_MODEL_PROMPT_GUARD_22M_TOKENS_PER_DAY      – tokens    / day         (default: 500,000)
+			GROQ_MODEL_PROMPT_GUARD_22M_INPUT_TOKENS_PER_MINUTE  – input tokens  / minute  (default: None — only if split limits apply)
+			GROQ_MODEL_PROMPT_GUARD_22M_OUTPUT_TOKENS_PER_MINUTE – output tokens / minute  (default: None — only if split limits apply)
 	"""
 
 	# ------------------------------------------------------------------ identity

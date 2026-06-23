@@ -13,8 +13,8 @@ class WhisperLargeV3Config(ModelRateLimitConfig):
 	"""Free Plan rate limits for ``whisper-large-v3`` (audio transcription).
 
 	Env-var overrides (all optional; class defaults apply when unset):
-			GROQ_MODEL_WHISPER_V3_RPM   – requests       / minute  (default: 20)
-			GROQ_MODEL_WHISPER_V3_RPD   – requests       / day     (default: 2,000)
+			GROQ_MODEL_WHISPER_V3_REQUESTS_PER_MINUTE – requests / minute  (default: 20)
+			GROQ_MODEL_WHISPER_V3_REQUESTS_PER_DAY    – requests / day         (default: 2,000)
 			GROQ_MODEL_WHISPER_V3_ASH   – audio seconds  / hour    (default: 7,200)
 			GROQ_MODEL_WHISPER_V3_ASD   – audio seconds  / day     (default: 28,800)
 	"""

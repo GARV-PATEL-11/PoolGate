@@ -13,8 +13,8 @@ class WhisperLargeV3TurboConfig(ModelRateLimitConfig):
 	"""Free Plan rate limits for ``whisper-large-v3-turbo`` (audio transcription).
 
 	Env-var overrides (all optional; class defaults apply when unset):
-			GROQ_MODEL_WHISPER_V3_TURBO_RPM   – requests       / minute  (default: 20)
-			GROQ_MODEL_WHISPER_V3_TURBO_RPD   – requests       / day     (default: 2,000)
+			GROQ_MODEL_WHISPER_V3_TURBO_REQUESTS_PER_MINUTE – requests / minute  (default: 20)
+			GROQ_MODEL_WHISPER_V3_TURBO_REQUESTS_PER_DAY    – requests / day         (default: 2,000)
 			GROQ_MODEL_WHISPER_V3_TURBO_ASH   – audio seconds  / hour    (default: 7,200)
 			GROQ_MODEL_WHISPER_V3_TURBO_ASD   – audio seconds  / day     (default: 28,800)
 	"""

@@ -13,12 +13,12 @@ class CompoundMiniConfig(ModelRateLimitConfig):
 	"""Free Plan rate limits for ``groq/compound-mini``.
 
 	Env-var overrides (all optional; class defaults apply when unset):
-			GROQ_MODEL_COMPOUND_MINI_RPM   – requests  / minute  (default: 30)
-			GROQ_MODEL_COMPOUND_MINI_RPD   – requests  / day     (default: 250)
-			GROQ_MODEL_COMPOUND_MINI_TPM   – tokens    / minute  (default: 70,000)
-			GROQ_MODEL_COMPOUND_MINI_TPD   – tokens    / day     (default: None)
-			GROQ_MODEL_COMPOUND_MINI_ITPM  – in-tok    / minute  (default: None — only if split limits apply)
-			GROQ_MODEL_COMPOUND_MINI_OTPM  – out-tok   / minute  (default: None — only if split limits apply)
+			GROQ_MODEL_COMPOUND_MINI_REQUESTS_PER_MINUTE – requests / minute  (default: 30)
+			GROQ_MODEL_COMPOUND_MINI_REQUESTS_PER_DAY    – requests / day         (default: 250)
+			GROQ_MODEL_COMPOUND_MINI_TOKENS_PER_MINUTE   – tokens    / minute   (default: 70,000)
+			GROQ_MODEL_COMPOUND_MINI_TOKENS_PER_DAY      – tokens    / day         (default: None)
+			GROQ_MODEL_COMPOUND_MINI_INPUT_TOKENS_PER_MINUTE  – input tokens  / minute  (default: None — only if split limits apply)
+			GROQ_MODEL_COMPOUND_MINI_OUTPUT_TOKENS_PER_MINUTE – output tokens / minute  (default: None — only if split limits apply)
 	"""
 
 	# ------------------------------------------------------------------ identity

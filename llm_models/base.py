@@ -47,7 +47,7 @@ class ModelRateLimitConfig:
 	Construction::
 
 			cfg = Llama3370BVersatileConfig.from_env()
-			# GROQ_MODEL_LLAMA_33_70B_VERSATILE_RPM env var overrides 30 if set.
+			# GROQ_MODEL_LLAMA_33_70B_VERSATILE_REQUESTS_PER_MINUTE env var overrides 30 if set.
 
 	Limits that do not apply to a model (e.g. tokens_per_minute / tokens_per_day for audio-only
 	Whisper llm_models) should remain ``None`` in the subclass; they are
@@ -84,7 +84,7 @@ class ModelRateLimitConfig:
 				"audio_seconds_per_day",
 				"input_tokens_per_minute",
 				"output_tokens_per_minute",
-				):
+			):
 			val: int | None = getattr(self, name)
 			if val is not None and val <= 0:
 				raise InvalidRateLimitConfigError(
@@ -169,7 +169,7 @@ class ModelRateLimitConfig:
 
 		Example::
 
-				GROQ_MODEL_LLAMA_33_70B_VERSATILE_RPM=60
+				GROQ_MODEL_LLAMA_33_70B_VERSATILE_REQUESTS_PER_MINUTE=60
 		"""
 		defaults = cls()  # hydrate the class-level defaults into an instance
 		p = cls._ENV_PREFIX
