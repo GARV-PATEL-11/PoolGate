@@ -1,0 +1,47 @@
+repos:
+  # ── Ruff: linting + formatting (replaces flake8, black, isort) ───────────────
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.11.13
+    hooks:
+      - id: ruff
+        args: [ --fix, --exit-non-zero-on-fix ]
+        types_or: [ python, pyi ]
+      - id: ruff-format
+        types_or: [ python, pyi ]
+
+  # ── Mypy: static type checking ────────────────────────────────────────────────
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.16.0
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - pydantic>=2.13.0
+          - tenacity>=8.5.0
+          - groq>=1.4.0
+        args:
+          - --strict
+          - --ignore-missing-imports
+
+  # ── General file hygiene ──────────────────────────────────────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^.*\.md$          # preserve intentional trailing spaces in Markdown
+      - id: end-of-file-fixer
+        exclude: ^uv\.lock$        # uv manages its own line endings
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [ --maxkb=200 ]
+      - id: debug-statements        # catches leftover breakpoint() / pdb.set_trace()
+      - id: detect-private-key      # ← CRITICAL: blocks accidental gsk_... commits
+
+  # ── Commitizen: enforce Conventional Commits format ───────────────────────────
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.8.0
+    hooks:
+      - id: commitizen
+        stages: [ commit-msg ]
