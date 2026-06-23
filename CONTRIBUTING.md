@@ -37,7 +37,7 @@ cp .env.example .env
 # → Fill in at least one GROQ_API_KEY_* for integration / e2e tests
 ```
 
-> **Alternative (plain pip):** `python -m venv .venv && source .venv/bin/activate && pip install -e ".[dev]"`
+> **Alternative (plain pip):** `python -m venv .venv && source .venv/bin/activate && pip install -e . && pip install pytest pytest-asyncio pytest-mock httpx pytest-cov`
 
 ---
 
