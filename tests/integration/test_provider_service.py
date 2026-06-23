@@ -328,7 +328,7 @@ class TestFlushTracking:
 			):
 		from services.persistence_service import PersistenceService
 
-		db_path = str(tmp_path / "usage.db")
+		db_path = tmp_path / "usage.db"
 		persistence = PersistenceService.sqlite(db_path)
 
 		# Reconstruct with persistence

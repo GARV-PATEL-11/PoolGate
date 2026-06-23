@@ -74,7 +74,7 @@ def persisted_service(monkeypatch, tmp_path) -> tuple[GroqService, PersistenceSe
 	_set_groq_keys(monkeypatch, ["gsk_persist_key"])
 
 	path = tmp_path / "stats.json"
-	persistence = PersistenceService.json(str(path))
+	persistence = PersistenceService.json(path)
 
 	svc = GroqService(persistence=persistence)
 

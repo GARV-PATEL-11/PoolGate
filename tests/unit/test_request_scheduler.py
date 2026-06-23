@@ -15,13 +15,14 @@ import pytest
 
 from exceptions.keys import NoAvailableAPIKeyError
 from core.logger_manager import LoggerManager
+from core.path_config import PathConfig
 from schedulers.request_scheduler import RequestScheduler
 from schemas.runtime import APIKeyStatus
 
 
 @pytest.fixture
 def logger():
-	return LoggerManager("test", "INFO")
+	return LoggerManager(PathConfig(base_dir=None), "INFO").get()
 
 
 @pytest.fixture
