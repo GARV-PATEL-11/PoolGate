@@ -1,5 +1,4 @@
 """Operational health snapshots for PoolGate."""
-
 from __future__ import annotations
 
 import time
@@ -16,13 +15,13 @@ class HealthService:
 		self._version = version
 
 	def snapshot(
-			self,
-			*,
-			key_status: list[dict[str, Any]],
-			active_sessions: int = 0,
-			global_stats: dict[str, Any] | None = None,
-			details: dict[str, Any] | None = None,
-			) -> HealthStatus:
+		self,
+		*,
+		key_status: list[dict[str, Any]],
+		active_sessions: int = 0,
+		global_stats: dict[str, Any] | None = None,
+		details: dict[str, Any] | None = None,
+		) -> HealthStatus:
 		active_keys = sum(1 for key in key_status if key.get("status") == "active")
 		disabled_keys = sum(1 for key in key_status if key.get("status") == "disabled")
 		failed_keys = sum(1 for key in key_status if key.get("status") == "failed")
