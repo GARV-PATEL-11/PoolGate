@@ -1,9 +1,34 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+# ---------------------------------------------------------------------------
+# Project metadata
+# ---------------------------------------------------------------------------
 [project]
 name = "poolgate"
 version = "0.1.1"
-description = "Rate-aware API key pooling and orchestration for the Groq API."
+description = "Rate-aware API key pooling and orchestration for LLM providers."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [
+    { name = "Garv Patel", email = "dmyfx0110@gmail.com" },
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Internet :: WWW/HTTP",
+    "Typing :: Typed",
+]
+keywords = ["groq", "gemini", "api-key", "rate-limit", "throttle", "pool", "llm"]
+
 dependencies = [
     "groq>=1.4.0",
     "pydantic>=2.13.0",
@@ -11,10 +36,11 @@ dependencies = [
     "tenacity>=8.5.0",
 ]
 
+# ---------------------------------------------------------------------------
+# Optional dependencies
+# ---------------------------------------------------------------------------
 [project.optional-dependencies]
 gemini = ["google-genai>=1.0.0"]
-
-[dependency-groups]
 dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.24.0",
@@ -22,16 +48,38 @@ dev = [
     "httpx>=0.28.0",
     "pytest-cov>=6.0.0",
     "black>=26.5.1",
+    "mypy>=1.10.0",
 ]
 
+# ---------------------------------------------------------------------------
+# Project URLs
+# ---------------------------------------------------------------------------
+[project.urls]
+Homepage = "https://github.com/GARV-PATEL-11/PoolGate"
+"Bug Tracker" = "https://github.com/GARV-PATEL-11/PoolGate/issues"
+Changelog = "https://github.com/GARV-PATEL-11/PoolGate/releases"
+
+# ---------------------------------------------------------------------------
+# setuptools — package discovery
+# ---------------------------------------------------------------------------
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["poolgate*"]
+exclude = ["tests*", "examples*", "scripts*", "data*"]
+
+[tool.setuptools.package-data]
+poolgate = ["py.typed"]
+
+# ---------------------------------------------------------------------------
+# pytest
+# ---------------------------------------------------------------------------
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["poolgate*"]
-
+# ---------------------------------------------------------------------------
+# coverage
+# ---------------------------------------------------------------------------
 [tool.coverage.run]
 source = ["poolgate"]
 omit = ["tests/*", "*/__pycache__/*", "examples/*", "scripts/*"]
@@ -43,13 +91,19 @@ exclude_lines = [
     "raise NotImplementedError",
 ]
 
+# ---------------------------------------------------------------------------
+# black
+# ---------------------------------------------------------------------------
 [tool.black]
 line-length = 120
-target-version = ["py310"]
+target-version = ["py312"]
 extend-exclude = "(examples|scripts)/"
 
+# ---------------------------------------------------------------------------
+# mypy
+# ---------------------------------------------------------------------------
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.12"
 strict = true
 ignore_missing_imports = true
 exclude = ["examples/", "scripts/", "tests/"]

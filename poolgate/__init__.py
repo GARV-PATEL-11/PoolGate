@@ -2,6 +2,8 @@
 
 from typing import Any
 
+__version__ = "0.1.1"
+
 from poolgate.core.config import GroqConfig
 from poolgate.core.gemini_config import GeminiConfig
 from poolgate.core.paths import PathConfig
