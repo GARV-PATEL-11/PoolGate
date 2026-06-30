@@ -246,8 +246,7 @@ class TestAbstractMethodBodies:
         stub = _Stub()
         assert await stub.async_invoke() is None
 
-    @pytest.mark.asyncio
-    async def test_text_generation_async_stream_stub_returns_none(self):
+    def test_text_generation_async_stream_stub_returns_none(self):
         class _Stub(TextGenerationCapability):
             def invoke(self, *a, **kw):
                 return super().invoke(*a, **kw)
@@ -258,11 +257,11 @@ class TestAbstractMethodBodies:
             def stream(self, *a, **kw):
                 return super().stream(*a, **kw)
 
-            async def async_stream(self, *a, **kw):
-                return await super().async_stream(*a, **kw)
+            def async_stream(self, *a, **kw):
+                return super().async_stream(*a, **kw)
 
         stub = _Stub()
-        assert await stub.async_stream() is None
+        assert stub.async_stream() is None
 
     def test_structured_generation_stubs_return_none(self):
         class _Stub(StructuredGenerationCapability):

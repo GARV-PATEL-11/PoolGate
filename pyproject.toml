@@ -13,7 +13,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [
-    { name = "Garv Patel", email = "dmyfx0110@gmail.com" },
+    { name = "Garv Patel", email = "garvpatel1105@gmail.com" },
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
