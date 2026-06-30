@@ -15,10 +15,11 @@ repos:
         additional_dependencies:
           - pydantic>=2.13.0
           - tenacity>=8.5.0
-          - groq>=1.4.0
         args:
           - --strict
           - --ignore-missing-imports
+          - --no-warn-unused-ignores
+        exclude: '^(tests|examples|scripts)/'
 
   # ── General file hygiene ──────────────────────────────────────────────────────
   - repo: https://github.com/pre-commit/pre-commit-hooks

@@ -6,8 +6,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from clients.moderation_client import ModerationResult
-from services.provider_service import GroqService
+from poolgate.capabilities.moderation import ModerationResult
+from poolgate.services.provider import GroqService
 
 
 def _set_groq_keys(monkeypatch, keys: list[str]) -> None:

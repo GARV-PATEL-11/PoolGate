@@ -14,8 +14,8 @@ import time
 from dotenv import load_dotenv
 from pydantic import BaseModel, ConfigDict
 
-from exceptions import GroqServiceError, StructuredOutputError
-from services.provider_service import GroqService
+from poolgate.exceptions import GroqServiceError, StructuredOutputError
+from poolgate.services.provider import GroqService
 
 load_dotenv()
 

@@ -19,10 +19,10 @@ uv run python scripts/smoke_test.py
 uv run pytest --cov=. --cov-report=term-missing
 
 # Run a single test file
-uv run pytest tests/unit/test_key_pool.py
+uv run pytest tests/unit/pool/test_key_pool.py
 
 # Run a single test by name
-uv run pytest tests/unit/test_key_pool.py::test_function_name -v
+uv run pytest tests/unit/pool/test_key_pool.py::test_function_name -v
 ```
 
 ## Environment variables
@@ -52,8 +52,8 @@ uv run pytest tests/unit/test_key_pool.py::test_function_name -v
 
 ### Local storage
 
-Filesystem paths are hardcoded via `core/path_config.py:PathConfig` — no environment variables control path resolution.
-The default data root is `<project_root>/poolgate_data` (resolved at import time from
+Filesystem paths are hardcoded via `poolgate/core/paths.py:PathConfig` — no environment variables control path resolution.
+The default data root is `<project_root>/data` (resolved at import time from
 `PathConfig._DEFAULT_BASE_DIR`). Pass an explicit `PathConfig` to `GroqConfig` to override (e.g. in tests).
 
 PoolGate creates the following layout under the data directory:
@@ -81,52 +81,53 @@ PoolGate creates the following layout under the data directory:
 ## Architecture
 
 PoolGate is a library (not a server) that pools multiple Groq API keys into one facade. The entry point for all usage is
-`services/provider_service.py:GroqService`.
+`poolgate/services/provider.py:GroqService`.
 
 ### Request flow
 
-1. **`GroqService`** (services/provider_service.py) — public facade. Exposes `invoke`, `stream`, `structured`,
+1. **`GroqService`** (poolgate/services/provider.py) — public facade. Exposes `invoke`, `stream`, `structured`,
    `invoke_tools`, `moderate`, `transcribe`, `synthesize`, and their async/batch variants. It validates input, acquires
    a key, calls a capability client, records outcomes, and retries on failure.
 
-2. **`RequestScheduler`** (schedulers/request_scheduler.py) — `acquire_key(request_id, model=...)` picks an
+2. **`RequestScheduler`** (poolgate/pool/scheduler.py) — `acquire_key(request_id, model=...)` picks an
    `APIKeyState` from the pool using a pluggable `SchedulingStrategy`. It enforces cooldowns and RPM limits. After the
    call, `release_key` or `mark_key_failure` is called to update per-key state.
 
-3. **`KeyPool` / `APIKeyState`** (key_manager/key_pool.py) — `APIKeyState` is the thread-safe per-key runtime state:
+3. **`KeyPool` / `APIKeyState`** (poolgate/pool/key_pool.py) — `APIKeyState` is the thread-safe per-key runtime state:
    sliding-window RPM/RPH/RPD counters, latency tracker, circuit-breaker (`consecutive_failures >= failure_threshold` →
    FAILED), and a composite `health_score()`. `KeyPool` is the collection.
 
-4. **Capability clients** (clients/) — one per Groq capability. All inherit `BaseGroqClient` (clients/base.py) which
-   provides SDK construction, error-to-exception mapping, and parsing helpers. The capability ABCs in
-   `clients/capabilities.py` define the contracts.
+4. **Capability clients** (poolgate/capabilities/) — one per Groq capability. All inherit `BaseGroqClient`
+   (poolgate/providers/groq/client.py) which provides SDK construction, error-to-exception mapping, and parsing helpers.
+   The capability ABCs in `poolgate/providers/groq/capabilities.py` define the contracts.
 
-5. **`llm_models/`** — per-model rate-limit configs (RPM/TPM/RPD). When a model ID is passed to `acquire_key`, the
-   scheduler looks up the model's own RPM limit here and uses it instead of the global `max_rpm_per_key`, so a Whisper
-   call and a Llama call are scored against their real Groq limits independently.
+5. **`poolgate/providers/groq/models.py`** — per-model rate-limit configs (RPM/TPM/RPD). When a model ID is passed to
+   `acquire_key`, the scheduler looks up the model's own RPM limit here and uses it instead of the global
+   `max_rpm_per_key`, so a Whisper call and a Llama call are scored against their real Groq limits independently.
 
-6. **`tracking/`** — `TrackingManager` aggregates per-request stats into `UsageTracker`, `TokenTracker`,
+6. **`poolgate/tracking/`** — `TrackingManager` aggregates per-request stats into `UsageTracker`, `TokenTracker`,
    `AccountTracker`, and `QuotaTracker`. Auto-persisted to `<data_dir>/tracking/` when
    `config.paths.persistence_enabled`; `flush_tracking()` writes each tracker to its own JSON file.
 
-7. **`retry.py`** — `RetryPolicy` / `AsyncRetryPolicy` built on tenacity. Retryable: 429, 5xx, transport errors.
-   Non-retryable: 401/403, 400, `APIKeyDisabledError`, `StructuredOutputError`, `NoAvailableAPIKeyError`.
+7. **`poolgate/services/retry.py`** — `RetryPolicy` / `AsyncRetryPolicy` built on tenacity. Retryable: 429, 5xx,
+   transport errors. Non-retryable: 401/403, 400, `APIKeyDisabledError`, `StructuredOutputError`,
+   `NoAvailableAPIKeyError`.
 
 ### Path and logging infrastructure
 
-**`core/path_config.py:PathConfig`** — Single source of truth for all filesystem paths. All modules must resolve paths
-through `config.paths` rather than constructing them inline. Key properties: `tracking_dir`, `requests_dir`, `log_dir`,
-and per-file paths (`general_log`, `request_log`, `response_log`, `trace_log`, `tool_calls_log`, `performance_log`,
-`storage_log`, `error_log`).
+**`poolgate/core/paths.py:PathConfig`** — Single source of truth for all filesystem paths. All modules must resolve
+paths through `config.paths` rather than constructing them inline. Key properties: `tracking_dir`, `requests_dir`,
+`log_dir`, and per-file paths (`general_log`, `request_log`, `response_log`, `trace_log`, `tool_calls_log`,
+`performance_log`, `storage_log`, `error_log`).
 
-**`core/logger_manager.py:LoggerManager`** — Centralized owner of all log handlers. Created per `GroqService` in
+**`poolgate/core/logger.py:LoggerManager`** — Centralized owner of all log handlers. Created per `GroqService` in
 `__init__`. Provides `get()` for human-readable text logging and typed structured methods (`log_request`,
 `log_response`, `log_trace`, `log_tool_call`, `log_performance`, `log_storage`) that write JSON lines to their dedicated
 category files. No other module may create `RotatingFileHandler` instances or hard-code log file paths.
 
 ### Scheduling strategies
 
-Six strategies live in `schedulers/scheduling_strategies.py`, selectable via `SchedulingStrategyType`:
+Six strategies live in `poolgate/pool/strategies/`, selectable via `SchedulingStrategyType`:
 
 - `HEALTH_AWARE` (default) — composite health score (RPM penalty + active requests + latency + failure rate)
 - `ROUND_ROBIN` — equal rotation
@@ -139,7 +140,7 @@ Swap at runtime: `scheduler.set_strategy(SchedulingStrategyType.ROUND_ROBIN)`.
 
 ### Exception hierarchy
 
-All exceptions inherit from `GroqServiceError` (exceptions/base.py). Import from `exceptions` directly:
+All exceptions inherit from `GroqServiceError` (poolgate/exceptions/base.py). Import from `poolgate.exceptions`:
 
 ```
 GroqServiceError
@@ -157,10 +158,10 @@ GroqServiceError
 
 ### Adding a new model
 
-Create a file in `llm_models/` following the pattern of an existing one (e.g. `llm_models/llama_3_3_70b_versatile.py`) —
-define RPM/TPM/RPD limits and register it in `llm_models/__init__.py`'s `get_model_config`.
+Add a class to `poolgate/providers/groq/models.py` following the pattern of an existing one — define RPM/TPM/RPD limits
+and register it in the `MODEL_REGISTRY` dict and `get_model_config` function in the same file.
 
 ### Key safety invariant
 
 Raw API keys (`APIKeyState.raw_key`) are never logged. All logging uses `masked_key` (format: `gsk_****abcd`), enforced
-by `observability.mask_key()`.
+by `poolgate.core.logger.mask_key()`.

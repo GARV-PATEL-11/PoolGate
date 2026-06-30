@@ -1,9 +1,9 @@
-"""Persistence — auto-save tracking data and request logs to poolgate_data/.
+"""Persistence — auto-save tracking data and request logs to data/.
 
 PoolGate writes all tracking state and request details to structured JSON
 files automatically — no manual PersistenceService setup required.
 
-Layout created under the data directory (poolgate_data/ by default):
+Layout created under the data directory (data/ by default):
     tracking/
         usage.json       daily request counts (requests, success, failures)
         tokens.json      per-model token usage by day
@@ -30,8 +30,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from exceptions import GroqServiceError
-from services.provider_service import GroqService
+from poolgate.exceptions import GroqServiceError
+from poolgate.services.provider import GroqService
 
 load_dotenv()
 
@@ -88,8 +88,7 @@ def main() -> None:
     )
     print(f"Response: {response.text[:80]}...")
     print(
-        f"Tokens:   {response.usage.prompt_tokens} in, "
-        f"{response.usage.completion_tokens} out",
+        f"Tokens:   {response.usage.prompt_tokens} in, " f"{response.usage.completion_tokens} out",
     )
     print()
 

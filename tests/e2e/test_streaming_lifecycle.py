@@ -6,9 +6,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from exceptions.response import RetryExhaustedError
-from schemas.runtime import RequestConfig
-from services.provider_service import GroqService
+from poolgate.exceptions.response import RetryExhaustedError
+from poolgate.schemas.common.runtime import RequestConfig
+from poolgate.services.provider import GroqService
 from tests.e2e.conftest import _mock_stream_chunks
 
 

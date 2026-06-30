@@ -10,9 +10,9 @@ from __future__ import annotations
 
 from dotenv import load_dotenv
 
-from exceptions.base import GroqServiceError
-from schedulers.scheduling_strategies import SchedulingStrategyType
-from services.provider_service import GroqService
+from poolgate.exceptions.base import GroqServiceError
+from poolgate.pool.strategies import SchedulingStrategyType
+from poolgate.services.provider import GroqService
 
 load_dotenv()
 
@@ -88,9 +88,7 @@ def main() -> None:
     print("\nKey pool status:")
     for key in service.get_key_pool_status():
         masked = key.get("masked_key", key.get("key_id", "?"))
-        print(
-            f"  {masked}: status={key.get('status')} rpm={key.get('requests_per_minute', 0)}"
-        )
+        print(f"  {masked}: status={key.get('status')} rpm={key.get('requests_per_minute', 0)}")
 
     service.flush_tracking()
     if service._config.paths.base_dir:

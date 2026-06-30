@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from dotenv import load_dotenv
 
-from exceptions import GroqServiceError
-from services.provider_service import GroqService
+from poolgate.exceptions import GroqServiceError
+from poolgate.services.provider import GroqService
 
 load_dotenv()
 
@@ -43,8 +43,7 @@ def main() -> None:
     if stats:
         total_tokens = stats.get("input_tokens", 0) + stats.get("output_tokens", 0)
         print(
-            f"Session stats: {stats.get('total_requests')} requests, "
-            f"{total_tokens} total tokens",
+            f"Session stats: {stats.get('total_requests')} requests, " f"{total_tokens} total tokens",
         )
 
     service.flush_tracking()

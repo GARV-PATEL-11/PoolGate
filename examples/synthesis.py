@@ -1,6 +1,6 @@
 """Speech synthesis — convert text to audio with Orpheus TTS.
 
-The synthesized audio is saved to poolgate_data/audio/output.mp3 so you can
+The synthesized audio is saved to data/audio/output.mp3 so you can
 play it back with any audio player.
 
 Environment (.env or shell):
@@ -15,8 +15,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-from exceptions import GroqServiceError
-from services.provider_service import GroqService
+from poolgate.exceptions import GroqServiceError
+from poolgate.services.provider import GroqService
 
 load_dotenv()
 
@@ -25,11 +25,7 @@ VOICES = ["tara", "leah", "jess", "leo", "dan", "mia", "zac", "zoe"]
 
 
 def main() -> None:
-    text = (
-        sys.argv[1]
-        if len(sys.argv) > 1
-        else "Hello! This is a test of PoolGate's text-to-speech synthesis."
-    )
+    text = sys.argv[1] if len(sys.argv) > 1 else "Hello! This is a test of PoolGate's text-to-speech synthesis."
     voice = sys.argv[2] if len(sys.argv) > 2 else "tara"
 
     if voice not in VOICES:
@@ -46,7 +42,7 @@ def main() -> None:
         response_format="mp3",
     )
 
-    # Save audio to poolgate_data/audio/ (or a local fallback)
+    # Save audio to data/audio/ (or a local fallback)
     audio_dir: Path = service._config.paths.audio_dir or Path(".")
     audio_dir.mkdir(parents=True, exist_ok=True)
     output_path = audio_dir / "output.mp3"
@@ -55,9 +51,7 @@ def main() -> None:
         f.write(result.audio)
 
     print(f"Audio saved: {output_path}  ({len(result.audio):,} bytes)")
-    print(
-        f"Voice: {result.voice}  Model: {result.model}  Latency: {result.latency:.3f}s"
-    )
+    print(f"Voice: {result.voice}  Model: {result.model}  Latency: {result.latency:.3f}s")
 
     service.flush_tracking()
     if service._config.paths.base_dir:

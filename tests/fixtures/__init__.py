@@ -11,8 +11,8 @@ from __future__ import annotations
 
 import pytest
 
-from services.persistence_service import PersistenceService
-from services.provider_service import GroqService
+from poolgate.persistence.snapshots import DailySnapshotRepository as PersistenceService
+from poolgate.services.provider import GroqService
 from tests.mocks import mock_sync_sdk
 
 # ============================================================================

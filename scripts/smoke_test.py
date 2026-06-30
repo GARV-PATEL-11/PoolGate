@@ -28,19 +28,15 @@ def main() -> int:
     os.environ.setdefault("GROQ_API_KEY_01", "gsk_smoke_test_dummy_key")
 
     try:
-        from services.provider_service import GroqService
+        from poolgate.services.provider import GroqService
     except Exception as exc:
-        print(
-            f"FAIL: could not import services.provider_service: {type(exc).__name__}: {exc}"
-        )
+        print(f"FAIL: could not import poolgate.services.provider: {type(exc).__name__}: {exc}")
         return 1
 
     try:
         service = GroqService()
     except Exception as exc:
-        print(
-            f"FAIL: GroqService() raised on construction: {type(exc).__name__}: {exc}"
-        )
+        print(f"FAIL: GroqService() raised on construction: {type(exc).__name__}: {exc}")
         return 1
 
     required_methods = (

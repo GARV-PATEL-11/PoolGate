@@ -6,10 +6,10 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from clients.moderation_client import ModerationClient, ModerationResult
-from exceptions.keys import APIKeyDisabledError
-from exceptions.rate_limit import RateLimitExceededError
-from schemas.runtime import RequestConfig
+from poolgate.capabilities.moderation import ModerationCapability as ModerationClient, ModerationResult
+from poolgate.exceptions.keys import APIKeyDisabledError
+from poolgate.exceptions.rate_limit import RateLimitExceededError
+from poolgate.schemas.common.runtime import RequestConfig
 
 
 def _mock_moderation_completion(label: str = "SAFE", prompt_tokens: int = 8) -> MagicMock:
