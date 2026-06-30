@@ -41,6 +41,11 @@ dependencies = [
 # ---------------------------------------------------------------------------
 [project.optional-dependencies]
 gemini = ["google-genai>=1.0.0"]
+
+# ---------------------------------------------------------------------------
+# Dependency groups (uv --all-groups installs these; not shipped in the wheel)
+# ---------------------------------------------------------------------------
+[dependency-groups]
 dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.24.0",
