@@ -6,10 +6,10 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from exceptions.keys import APIKeyDisabledError, NoAvailableAPIKeyError
-from exceptions.response import RetryExhaustedError
-from schemas.runtime import APIKeyStatus, RequestConfig
-from services.provider_service import GroqService
+from poolgate.exceptions.keys import APIKeyDisabledError, NoAvailableAPIKeyError
+from poolgate.exceptions.response import RetryExhaustedError
+from poolgate.schemas.common.runtime import APIKeyStatus, RequestConfig
+from poolgate.services.provider import GroqService
 
 
 def _set_groq_keys(monkeypatch, keys: list[str]) -> None:

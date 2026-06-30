@@ -12,8 +12,8 @@ import sys
 
 from dotenv import load_dotenv
 
-from exceptions import GroqServiceError
-from services.provider_service import GroqService
+from poolgate.exceptions import GroqServiceError
+from poolgate.services.provider import GroqService
 
 load_dotenv()
 

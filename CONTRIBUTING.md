@@ -49,11 +49,11 @@ Run this once on a fresh clone to clean up the tracking index:
 ```bash
 # Remove artefacts already tracked by git but covered by .gitignore
 git rm -r --cached htmlcov/
-git rm -r --cached poolgate_data/
+git rm -r --cached data/
 git rm --cached coverage.xml
 git rm -r --cached __pycache__/       # root-level only; sub-package ones too if present
 
-git commit -m "chore: untrack generated artefacts (htmlcov, poolgate_data, coverage.xml)"
+git commit -m "chore: untrack generated artefacts (htmlcov, data, coverage.xml)"
 ```
 
 After this, git will no longer track those paths, even if the local files still exist.
@@ -62,22 +62,21 @@ After this, git will no longer track those paths, even if the local files still 
 
 ## Project Layout
 
-| Package        | Role                                                                                         |
-|----------------|----------------------------------------------------------------------------------------------|
-| `core/`        | Config, path resolution, structured logging                                                  |
-| `clients/`     | Public multi-modal API surface (chat, tool, structured, moderation, …)                       |
-| `services/`    | Orchestration — GroqService, RetryService, SessionManager, HealthService, PersistenceService |
-| `schedulers/`  | Key selection — RequestScheduler + 6 SchedulingStrategy variants                             |
-| `key_manager/` | Per-key runtime state — APIKeyState, KeyPool                                                 |
-| `llm_models/`  | Per-model rate-limit configs (env-overridable)                                               |
-| `tracking/`    | Usage, token, quota, account tracking + persistence                                          |
-| `schemas/`     | Pydantic v2 service-boundary contracts                                                       |
-| `exceptions/`  | Typed hierarchy rooted at GroqServiceError                                                   |
-| `utils.py`     | SlidingWindowCounter + shared helpers                                                        |
-| `retry.py`     | RetryPolicy built on tenacity                                                                |
-| `examples/`    | 13 runnable usage scripts                                                                    |
-| `scripts/`     | smoke_test.py — quick sanity check                                                           |
-| `tests/`       | 53-file suite across unit/, integration/, providers/, e2e/                                   |
+| Package                     | Role                                                                                         |
+|-----------------------------|----------------------------------------------------------------------------------------------|
+| `poolgate/core/`            | Config, path resolution, structured logging                                                  |
+| `poolgate/capabilities/`    | Public multi-modal API surface (chat, tool, structured, moderation, …)                       |
+| `poolgate/providers/`       | Groq SDK adapter, model rate-limit configs                                                   |
+| `poolgate/services/`        | Orchestration — GroqService, RetryService, HealthService                                     |
+| `poolgate/pool/`            | Key selection — RequestScheduler + 6 SchedulingStrategy variants                             |
+| `poolgate/persistence/`     | Session management and snapshot persistence                                                  |
+| `poolgate/tracking/`        | Usage, token, quota, account tracking + persistence                                          |
+| `poolgate/schemas/`         | Pydantic v2 service-boundary contracts                                                       |
+| `poolgate/exceptions/`      | Typed hierarchy rooted at GroqServiceError                                                   |
+| `poolgate/utils.py`         | SlidingWindowCounter + shared helpers                                                        |
+| `examples/`                 | 13 runnable usage scripts                                                                    |
+| `scripts/`                  | smoke_test.py — quick sanity check                                                           |
+| `tests/`                    | pytest suite mirroring the poolgate/ tree                                                    |
 
 ---
 
@@ -108,28 +107,29 @@ Public classes and functions use concise plain-English docstrings.
 
 ### Thread safety
 
-All mutable shared state **must** be guarded by `threading.Lock`. See `tracking/usage_tracker.py`
+All mutable shared state **must** be guarded by `threading.Lock`. See `poolgate/tracking/usage.py`
 for the standard pattern.
 
 ### Key masking
 
 Raw API keys (`gsk_...`) must **never** appear in logs, exception messages, or serialised state.
-Always call `core.logger_manager.mask_key()` before any output.
+Always call `poolgate.core.logger.mask_key()` before any output.
 
 ### Exceptions
 
-Raise from the typed hierarchy in `exceptions/`. Never raise bare `ValueError` or `RuntimeError`
+Raise from the typed hierarchy in `poolgate/exceptions/`. Never raise bare `ValueError` or `RuntimeError`
 from library code — callers must be able to catch specific types.
 
 ### Path handling
 
-All filesystem paths are constructed via `PathConfig` (`core/path_config.py`). No `os.path.join()`
+All filesystem paths are constructed via `PathConfig` (`poolgate/core/paths.py`). No `os.path.join()`
 or f-string paths anywhere in source code.
 
 ### Model rate limits
 
-When adding a new Groq model, subclass `ModelRateLimitConfig` in `llm_models/`, add it to
-`llm_models/__init__.py`, and add a corresponding unit test in `tests/unit/test_llm_models.py`.
+When adding a new Groq model, add a `ModelRateLimitConfig` subclass in `poolgate/providers/groq/models.py`,
+register it in the `MODEL_REGISTRY` dict and `get_model_config` function in the same file, and add a
+corresponding unit test in `tests/unit/providers/groq/test_models.py`.
 
 ---
 
@@ -155,7 +155,7 @@ uv run pytest tests/integration/ -v
 uv run pytest tests/e2e/ -v -m e2e
 
 # Single file
-uv run pytest tests/unit/test_key_pool.py -v
+uv run pytest tests/unit/pool/test_key_pool.py -v
 ```
 
 **Test markers:**
@@ -219,16 +219,16 @@ Example: `feat/async-key-pool`, `fix/jsonl-trailing-newline`
 [optional footer — Fixes #123]
 ```
 
-Scopes map to packages: `tracking`, `clients`, `services`, `schedulers`, `key_manager`,
-`llm_models`, `schemas`, `exceptions`, `core`, `tests`, `ci`, `docs`
+Scopes map to packages: `tracking`, `capabilities`, `services`, `pool`, `persistence`,
+`providers`, `schemas`, `exceptions`, `core`, `tests`, `ci`, `docs`
 
 Examples:
 
 ```
-feat(schedulers): add least-remaining-capacity strategy
+feat(pool): add least-remaining-capacity strategy
 fix(tracking): handle trailing newlines in JSONL persistence load
 docs(readme): add full project structure and architecture diagram
-test(clients): add unit tests for StructuredClient JSON validation
+test(capabilities): add unit tests for StructuredCapability JSON validation
 chore(ci): add GitHub Actions test workflow with uv
 ```
 
@@ -242,9 +242,9 @@ chore(ci): add GitHub Actions test workflow with uv
 - [ ] `CHANGELOG.md` updated under `[Unreleased]`
 - [ ] Type hints on all new functions / methods
 - [ ] No raw API keys in the diff (verified by `detect-private-key` hook)
-- [ ] `poolgate_data/`, `htmlcov/`, `coverage.xml` not in the diff
+- [ ] `data/`, `htmlcov/`, `coverage.xml` not in the diff
 - [ ] PR description explains *what* changed and *why*
-- [ ] New models added to `llm_models/` have a corresponding test
+- [ ] New models added to `poolgate/providers/groq/models.py` have a corresponding test
 
 ---
 

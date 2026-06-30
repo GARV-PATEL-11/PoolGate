@@ -6,10 +6,10 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from clients.structured_client import StructuredClient
-from exceptions.keys import APIKeyDisabledError
-from exceptions.rate_limit import RateLimitExceededError
-from schemas.runtime import RequestConfig
+from poolgate.capabilities.structured import StructuredCapability as StructuredClient
+from poolgate.exceptions.keys import APIKeyDisabledError
+from poolgate.exceptions.rate_limit import RateLimitExceededError
+from poolgate.schemas.common.runtime import RequestConfig
 
 
 def _mock_json_completion(json_text: str = '{"value": 42}') -> MagicMock:

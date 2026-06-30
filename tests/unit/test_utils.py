@@ -6,7 +6,7 @@ import time
 
 import pytest
 
-from utils import clamp, LatencyTracker, now_ts, SlidingWindowCounter, utc_now
+from poolgate.utils import clamp, LatencyTracker, now_ts, SlidingWindowCounter, utc_now
 
 
 class TestSlidingWindowCounter:

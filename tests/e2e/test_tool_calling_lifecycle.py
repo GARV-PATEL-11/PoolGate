@@ -6,8 +6,8 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from schemas.runtime import FinishReason
-from services.provider_service import GroqService
+from poolgate.schemas.common.runtime import FinishReason
+from poolgate.services.provider import GroqService
 
 
 def _set_groq_keys(monkeypatch, keys: list[str]) -> None:

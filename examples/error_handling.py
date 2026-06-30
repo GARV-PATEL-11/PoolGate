@@ -13,14 +13,14 @@ import sys
 
 from dotenv import load_dotenv
 
-from exceptions import (
+from poolgate.exceptions import (
     APIKeyDisabledError,
     GroqServiceError,
     InvalidRequestError,
     NoAvailableAPIKeyError,
     RateLimitExceededError,
 )
-from services.provider_service import GroqService
+from poolgate.services.provider import GroqService
 
 load_dotenv()
 
@@ -75,9 +75,7 @@ def safe_invoke(service: GroqService, prompt: str) -> str | None:
         return None
 
     except APIKeyDisabledError as e:
-        print(
-            f"[APIKeyDisabledError] Key {e.key_id!r} is disabled (HTTP {e.status_code})"
-        )
+        print(f"[APIKeyDisabledError] Key {e.key_id!r} is disabled (HTTP {e.status_code})")
         return None
 
     except RateLimitExceededError as e:

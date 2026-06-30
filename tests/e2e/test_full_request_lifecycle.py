@@ -15,7 +15,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from services.provider_service import GroqService
+from poolgate.services.provider import GroqService
 
 
 def _mock_completion(text: str):
@@ -67,7 +67,7 @@ def test_invoke_full_lifecycle(service):
 def test_chat_rejects_invalid_role(service):
     """Regression test for H2: malformed roles must fail with a typed
     PoolGate exception, not be silently forwarded to the SDK."""
-    from exceptions.request import InvalidMessageRoleError
+    from poolgate.exceptions.request import InvalidMessageRoleError
 
     with pytest.raises(InvalidMessageRoleError):
         service.chat(messages=[{"role": "narrator", "content": "hi"}])

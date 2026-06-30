@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from services.provider_service import GroqService
+from poolgate.services.provider import GroqService
 
 
 def _set_groq_keys(monkeypatch, keys: list[str]) -> None:

@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from dotenv import load_dotenv
 
-from exceptions.base import GroqServiceError
-from services.provider_service import GroqService
+from poolgate.exceptions.base import GroqServiceError
+from poolgate.services.provider import GroqService
 
 load_dotenv()
 
@@ -24,9 +24,7 @@ def main() -> None:
         system="You are a helpful assistant. Answer concisely.",
     )
     print(f"Answer:  {response.text}")
-    print(
-        f"Tokens:  {response.usage.prompt_tokens} in, {response.usage.completion_tokens} out"
-    )
+    print(f"Tokens:  {response.usage.prompt_tokens} in, {response.usage.completion_tokens} out")
     print(f"Latency: {response.latency:.3f}s  Model: {response.model}")
 
     service.flush_tracking()

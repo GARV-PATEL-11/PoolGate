@@ -33,6 +33,7 @@ MANIFEST
 *.spec
 
 # PoolGate runtime data directory (all generated content)
+data/
 poolgate_data/
 
 # Installer logs

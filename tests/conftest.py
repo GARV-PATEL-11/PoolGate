@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from core.config import GroqConfig
-from key_manager.key_pool import APIKeyState, KeyPool
+from poolgate.core.config import GroqConfig
+from poolgate.pool.key_pool import APIKeyState, KeyPool
 
 
 @pytest.fixture

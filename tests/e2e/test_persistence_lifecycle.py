@@ -8,9 +8,9 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from core.config import GroqConfig
-from core.path_config import PathConfig
-from services.provider_service import GroqService
+from poolgate.core.config import GroqConfig
+from poolgate.core.paths import PathConfig
+from poolgate.services.provider import GroqService
 
 
 def _set_groq_keys(monkeypatch, keys: list[str]) -> None:
