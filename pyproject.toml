@@ -11,6 +11,9 @@ dependencies = [
     "tenacity>=8.5.0",
 ]
 
+[project.optional-dependencies]
+gemini = ["google-genai>=1.0.0"]
+
 [dependency-groups]
 dev = [
     "pytest>=8.0.0",
