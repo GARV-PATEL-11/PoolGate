@@ -56,14 +56,22 @@ Filesystem paths are hardcoded via `poolgate/core/paths.py:PathConfig` — no en
 The default data root is `<project_root>/data` (resolved at import time from
 `PathConfig._DEFAULT_BASE_DIR`). Pass an explicit `PathConfig` to `GroqConfig` to override (e.g. in tests).
 
+`PathConfig.namespace` prefixes the tracking filenames (e.g. `namespace="gemini"` → `gemini_usage.json`) so multiple
+providers can safely share one `base_dir` without one provider's `flush_tracking()` overwriting another's tracking
+JSON. `GeminiConfig` defaults `paths` to `PathConfig(namespace="gemini")`; `GroqConfig` leaves `namespace=None` (kept
+unprefixed for backward compatibility).
+
 PoolGate creates the following layout under the data directory:
 
 ```
 <data_dir>/
   tracking/
-    usage.json      # daily request counts
-    tokens.json     # per-model token usage
-    account.json    # per-key usage
+    usage.json           # Groq: daily request counts
+    tokens.json          # Groq: per-model token usage
+    account.json         # Groq: per-key usage
+    gemini_usage.json    # Gemini: daily request counts
+    gemini_tokens.json   # Gemini: per-model token usage
+    gemini_account.json  # Gemini: per-key usage
   requests/
     YYYY-MM-DD.jsonl  # one JSON line per request (execution details)
   logs/
