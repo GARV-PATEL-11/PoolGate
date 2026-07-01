@@ -131,6 +131,43 @@ class TestPathConfigWithBaseDir:
             assert isinstance(prop, Path), f"Expected Path, got {type(prop)}: {prop}"
 
 
+class TestPathConfigNamespace:
+    """namespace prefixes tracking filenames so multiple providers can share base_dir."""
+
+    def test_no_namespace_keeps_unprefixed_names(self, tmp_path):
+        p = PathConfig(base_dir=tmp_path)
+        tracking_dir = tmp_path / "tracking"
+        assert p.usage_json == tracking_dir / "usage.json"
+        assert p.tokens_json == tracking_dir / "tokens.json"
+        assert p.account_json == tracking_dir / "account.json"
+
+    def test_namespace_prefixes_tracking_filenames(self, tmp_path):
+        p = PathConfig(base_dir=tmp_path, namespace="gemini")
+        tracking_dir = tmp_path / "tracking"
+        assert p.usage_json == tracking_dir / "gemini_usage.json"
+        assert p.tokens_json == tracking_dir / "gemini_tokens.json"
+        assert p.account_json == tracking_dir / "gemini_account.json"
+
+    def test_namespace_does_not_affect_other_paths(self, tmp_path):
+        p = PathConfig(base_dir=tmp_path, namespace="gemini")
+        assert p.tracking_dir == tmp_path / "tracking"
+        assert p.log_dir == tmp_path / "logs"
+        assert p.requests_dir == tmp_path / "requests"
+
+    def test_namespace_with_no_base_dir_stays_none(self):
+        p = PathConfig(base_dir=None, namespace="gemini")
+        assert p.usage_json is None
+        assert p.tokens_json is None
+        assert p.account_json is None
+
+    def test_different_namespaces_do_not_collide(self, tmp_path):
+        groq = PathConfig(base_dir=tmp_path)
+        gemini = PathConfig(base_dir=tmp_path, namespace="gemini")
+        assert groq.usage_json != gemini.usage_json
+        assert groq.tokens_json != gemini.tokens_json
+        assert groq.account_json != gemini.account_json
+
+
 class TestPathConfigLogDirOverride:
 
     def test_override_replaces_computed_log_dir(self, tmp_path):
