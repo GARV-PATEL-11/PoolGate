@@ -33,7 +33,7 @@ class GeminiConfig:
     debug_mode: bool = False
     log_level: str = "INFO"
 
-    paths: PathConfig = field(default_factory=PathConfig)
+    paths: PathConfig = field(default_factory=lambda: PathConfig(namespace="gemini"))
 
     @classmethod
     def from_env(cls) -> "GeminiConfig":

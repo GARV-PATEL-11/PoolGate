@@ -21,10 +21,15 @@ class PathConfig:
         Pass ``None`` to disable all I/O.
     log_dir_override:
         Optional explicit log directory. Overrides ``<base_dir>/logs``.
+    namespace:
+        Optional prefix for tracking filenames (e.g. ``"gemini"`` -> ``gemini_usage.json``).
+        Lets multiple providers share one ``base_dir`` without clobbering each other's
+        tracking state. ``None`` keeps the unprefixed names (``usage.json``, etc.).
     """
 
     base_dir: Path | None = _DEFAULT_BASE_DIR
     log_dir_override: Path | None = None
+    namespace: str | None = None
 
     @property
     def persistence_enabled(self) -> bool:
@@ -90,17 +95,26 @@ class PathConfig:
     def debug_log(self) -> Path | None:
         return self.log_dir / "debug.log" if self.log_dir is not None else None
 
+    def _tracking_filename(self, name: str) -> str:
+        return f"{self.namespace}_{name}" if self.namespace else name
+
     @property
     def usage_json(self) -> Path | None:
-        return self.tracking_dir / "usage.json" if self.tracking_dir is not None else None
+        if self.tracking_dir is None:
+            return None
+        return self.tracking_dir / self._tracking_filename("usage.json")
 
     @property
     def tokens_json(self) -> Path | None:
-        return self.tracking_dir / "tokens.json" if self.tracking_dir is not None else None
+        if self.tracking_dir is None:
+            return None
+        return self.tracking_dir / self._tracking_filename("tokens.json")
 
     @property
     def account_json(self) -> Path | None:
-        return self.tracking_dir / "account.json" if self.tracking_dir is not None else None
+        if self.tracking_dir is None:
+            return None
+        return self.tracking_dir / self._tracking_filename("account.json")
 
     def ensure_dirs(self) -> None:
         """Create all configured directories (exist_ok=True). Safe to call repeatedly."""
